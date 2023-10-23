@@ -1,2 +1,3 @@
 # WPT-identification
-Simulation of a wireless power transfer system with parameter identification techniques
+
+Simulation of a wireless power transfer system in order to test parameter identification techniques
