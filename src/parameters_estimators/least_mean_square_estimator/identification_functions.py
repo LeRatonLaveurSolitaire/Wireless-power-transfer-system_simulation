@@ -87,9 +87,12 @@ def cost_function_s(
         )
         im_part = np.imag(D) * (R_l + R) + np.real(D) * (L * wi - 1 / (C * wi))
 
+        # ( 1 / len(samples) * (re_part**2 + im_part**2))
         cost += (
-            1 / len(samples) * (re_part**2 + im_part**2)
-        )  # np.absolute((wi * M) ** 2 + D * (R_l + 1j * wi * L + B)) ** 2
+            1
+            / len(samples)
+            * np.absolute((wi * M) ** 2 + D * (R_l + 1j * wi * L + B)) ** 2
+        )
 
     return cost
 
@@ -114,7 +117,7 @@ def update_param_s(
     """
 
     partial_derivative = [0, 0, 0]  # R_l, M², L2
-    k = 1e-20
+    k = 10
     update_rate = [k, k, k]
 
     for i, sample in enumerate(samples):
@@ -129,33 +132,75 @@ def update_param_s(
         R_l = param_vect[2]
         L = estimated_system.reciever.L
         M2 = param_vect[1]
+        C = estimated_system.reciever.C_s
 
-        partial_derivative[0] += (
-            1
-            / (len(samples))
-            * (
-                (wi**2 * M2 + np.real(D) * R_l - np.imag(D) * wi * L + np.real(D * B))
-                * np.real(D)
-                + (np.imag(D) * R_l + np.real(D) * wi * L + np.imag(D * B)) * np.imag(D)
-            )
+        # partial_derivative[0] += (
+        #     1
+        #     / (len(samples))
+        #     * (
+        #         (wi**2 * M2 + np.real(D) * R_l - np.imag(D) * wi * L + np.real(D * B))
+        #         * np.real(D)
+        #         + (np.imag(D) * R_l + np.real(D) * wi * L + np.imag(D * B)) * np.imag(D)
+        #     )
+        # )
+        # partial_derivative[1] += (
+        #     1
+        #     / (len(samples))
+        #     * (wi**2 * M2 + np.real(D) * R_l - np.imag(D) * wi * L + np.real(D * B))
+        #     * wi**2
+        # )
+        # partial_derivative[2] += (
+        #     1
+        #     / (len(samples))
+        #     * (
+        #         (wi**2 * M2 + np.real(D) * R_l - np.imag(D) * wi * L + np.real(D * B))
+        #         * (-np.imag(D) * wi)
+        #         + (np.imag(D) * R_l + np.real(D) * wi * L + np.imag(D * B))
+        #         * np.real(D)
+        #         * wi
+        #     )
+        # )
+
+        partial_derivative[0] += np.real(
+            transmitter_impedance
+            + wi**2 * M2 / (R_l + 1j * wi * L + 1 / (1j * wi * C))
+            - sample
+        ) * np.real(C * wi**3 / (C * wi * (R_l + i * L * wi) - 1j)) + np.imag(
+            transmitter_impedance
+            + wi**2 * M2 / (R_l + 1j * wi * L + 1 / (1j * wi * C))
+            - sample
+        ) * np.imag(
+            C * wi**3 / (C * wi * (R_l + i * L * wi) - 1j)
         )
-        partial_derivative[1] += (
-            1
-            / (len(samples))
-            * (wi**2 * M2 + np.real(D) * R_l - np.imag(D) * wi * L + np.real(D * B))
-            * wi**2
+
+        partial_derivative[1] += np.real(
+            transmitter_impedance
+            + wi**2 * M2 / (R_l + 1j * wi * L + 1 / (1j * wi * C))
+            - sample
+        ) * np.real(
+            C**2 * wi**4 * M2 / (-1 + C * wi**2 * (L * wi - 1j * R_l)) ** 2
+        ) + np.imag(
+            transmitter_impedance
+            + wi**2 * M2 / (R_l + 1j * wi * L + 1 / (1j * wi * C))
+            - sample
+        ) * np.imag(
+            C**2 * wi**4 * M2 / (-1 + C * wi**2 * (L * wi - 1j * R_l)) ** 2
         )
-        partial_derivative[2] += (
-            1
-            / (len(samples))
-            * (
-                (wi**2 * M2 + np.real(D) * R_l - np.imag(D) * wi * L + np.real(D * B))
-                * (-np.imag(D) * wi)
-                + (np.imag(D) * R_l + np.real(D) * wi * L + np.imag(D * B))
-                * np.real(D)
-                * wi
-            )
+
+        partial_derivative[2] += np.real(
+            transmitter_impedance
+            + wi**2 * M2 / (R_l + 1j * wi * L + 1 / (1j * wi * C))
+            - sample
+        ) * np.real(
+            -1j * C**2 * M2 * wi**5 / (C * wi * (R_l + 1j * L * wi) - 1j) ** 2
+        ) + np.imag(
+            transmitter_impedance
+            + wi**2 * M2 / (R_l + 1j * wi * L + 1 / (1j * wi * C))
+            - sample
+        ) * np.imag(
+            -1j * C**2 * M2 * wi**5 / (C * wi * (R_l + 1j * L * wi) - 1j) ** 2
         )
+
     update_values = [0, 0, 0]
     for i in range(3):
         param_vect[i] -= np.real(update_rate[i] * partial_derivative[i])
@@ -247,7 +292,7 @@ def update_param_p(
     update_rate = [k * 1e21, k, k * 1e19, k * 1e12]
 
     for i, sample in enumerate(samples):
-        wi = 2 * np.pi * frequencys[i] * 1e-6
+        wi = 2 * np.pi * frequencys[i]
         transmitter_impedance = (
             estimated_system.transmitter.R
             + 1j * wi * estimated_system.transmitter.L
@@ -256,8 +301,8 @@ def update_param_p(
 
         D = sample - transmitter_impedance
         R_l = param_vect[2]
-        L = estimated_system.reciever.L * 1e6
-        M2 = param_vect[1] * 1e12
+        L = estimated_system.reciever.L
+        M2 = param_vect[1]
         C = estimated_system.reciever.C_p
 
         real_part = wi**2 * M2 + np.real(D) * R_l * (1 - wi**2 * L * C)
@@ -292,7 +337,6 @@ def update_param_p(
     for i in range(len(partial_derivative)):
         param_vect[i] -= np.real(update_rate[i] * partial_derivative[i])
         update.append(np.real(-update_rate[i] * partial_derivative[i]))
-    print(update)
 
     estimated_system.M = np.real(param_vect[1] ** (0.5)) * 1e-6
     estimated_system.reciever.R_l = param_vect[0]

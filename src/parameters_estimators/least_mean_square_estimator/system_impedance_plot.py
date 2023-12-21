@@ -84,7 +84,7 @@ def main():
         name="SP-P",
     )
 
-    systems = [system_1, system_2, system_3, system_4]
+    systems = [system_1, system_2]  # , system_3, system_4]
 
     for system in systems:
         print(f"System topology : {system.topology}, M = {system.M * 1e6:.1f} µH")

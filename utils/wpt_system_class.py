@@ -2,7 +2,12 @@
 
 import numpy as np
 
-# TODO : add documentation for Bode plot
+"""
+A WPT system is divided in 3 class : 
+* the transmitter (with its topology and componants value)
+* the reciever (with its topology and componants value)
+* the total system (based on a transmitter, a reciever and a mutual inductance)
+"""
 
 
 class transmitter:
@@ -15,6 +20,7 @@ class transmitter:
         C_s: float = None,
         C_p: float = None,
         R: float = None,
+        L_s: float = None,
         height: float = None,
         width: float = None,
         N: int = None,
@@ -22,17 +28,18 @@ class transmitter:
         """Class constructor.
 
         Args:
-            type (str): transmitter topology, it can be 'S' or 'P'. Defaults to 's'.
+            topology (str): transmitter topology, it can be 'S', 'P', 'SP' or 'LCC'. Defaults to 's'.
             L (float): transmitter coil inductance in Henry. Defaults to None.
             C_s (float): Serie compensation capacitor value in Farad. Defaults to None.
             C_p (float): Parallel compensation capacitor value in Farad. Defaults to None.
             R (float): Internal transmitter of the reciever coil in Ohm. Delaults to None.
+            L_s (float): Serie inductance used in the LCC topology. Value in Henry. Defaults to None.
             height (float) : Height of the coil in meter. Delaults to None.
             width (float) : Width of the coil in meter. Delaults to None.
             N (int) : Number of turn in the coil. Delaults to None.
         """
 
-        if topology not in ["S", "P", "SP"]:
+        if topology not in ["S", "P", "SP", "LCC"]:
             raise ValueError(
                 f"invalid topology, {topology} was entered, should 'S', 'P' or 'SP' "
             )
@@ -42,6 +49,7 @@ class transmitter:
         self.C_s = C_s
         self.C_p = C_p
         self.R = R
+        self.L_s = L_s
         self.height = height
         self.width = width
         self.N = N
@@ -61,6 +69,7 @@ class reciever:
         C_s: float = None,
         C_p: float = None,
         R_l: float = None,
+        L_s: float = None,
         height: float = None,
         width: float = None,
         N: int = None,
@@ -68,18 +77,19 @@ class reciever:
         """Class constructor.
 
         Args:
-            type (str): Reciever topology, it can be 'S' or 'P'. Defaults to 's'.
+            tytopology (str): Reciever topology, it can be 'S', 'P' or 'LCC'. Defaults to 's'.
             L (float): Reciever coil inductance in Henry. Defaults to None.
             R (float): Internal resistance of the reciever coil in Ohm. Delaults to None.
             C_s (float): Serie compensation capacitor value in Farad. Defaults to None.
             C_p (float): Parallel compensation capacitor value in Farad. Defaults to None.
+            L_s (float): Serie inductance used in the LCC topology. Value in Henry. Defaults to None.
             R_l (float): Resistance Load in Ohm. Defaults to None.
             height (float) : Height of the coil in meter. Defaults to None.
             width (float) : Width of the coil in meter. Defaults to None.
             N (int) : Number of turn in the coil. Defaults to None.
         """
 
-        if topology not in ["S", "P"]:
+        if topology not in ["S", "P", "LCC"]:
             raise ValueError(
                 f"invalid topology, {topology} was entered, should 'S' or 'P' "
             )
@@ -88,6 +98,7 @@ class reciever:
         self.L = L
         self.C_s = C_s
         self.C_p = C_p
+        self.L_s = L_s
         self.R_l = R_l
         self.R = R
         self.height = height
@@ -153,6 +164,10 @@ class total_system:
                 self.impedance = self._SP_S_impedance
             case "SP-P":
                 self.impedance = self._SP_P_impedance
+            case "LCC-LCC":
+                self.impedance = self._LCC_LCC_impedance
+            case "LCC-S":
+                self.impedance = self._LCC_S_impedance
             case _:
                 raise ValueError(
                     f"invalid topology, transmitter : {self.transmitter.topology} , reciever : {self.reciever.topology}"
@@ -163,7 +178,7 @@ class total_system:
     ) -> [list, list, list]:
         gain_dB, phase = [], []
         freqs = np.linspace(min_freq, max_freq, nb_samples)
-
+        #print(f"topology : {self.topology}, impedance at f0 : {self.impedance(85000)}")
         for freq in freqs:
             impedance_at_freq = self.impedance(freq)
             gain_dB.append(20 * np.log10(np.absolute(impedance_at_freq)))
@@ -228,7 +243,7 @@ class total_system:
             + (w**2 * M**2) / (R2 + 1j * w * L2 + R_l / (1 + 1j * w * R_l * C2))
         )
 
-    def _P_S_impedance(self, frequency: float = 0) -> complex:
+    def _P_S_impedance(self, frequency: float = None) -> complex:
         """Function computing the equivalent impedance for a P-S topology WPT system.
 
         Args:
@@ -240,7 +255,7 @@ class total_system:
 
         R1 = self.transmitter.R
         L1 = self.transmitter.L
-        C1 = self.transmitter.p
+        C1 = self.transmitter.C_p
         M = self.M
         R2 = self.reciever.R
         L2 = self.reciever.L
@@ -258,7 +273,7 @@ class total_system:
             + 1j * w * C1
         ) ** (-1)
 
-    def _P_P_impedance(self, frequency: float = 0) -> complex:
+    def _P_P_impedance(self, frequency: float = None) -> complex:
         """Function computing the equivalent impedance for a P-P topology WPT system.
 
         Args:
@@ -288,7 +303,7 @@ class total_system:
             + 1j * w * C1
         ) ** (-1)
 
-    def _SP_S_impedance(self, frequency: float = 0) -> complex:
+    def _SP_S_impedance(self, frequency: float = None) -> complex:
         """Function computing the equivalent impedance for a SP-S topology WPT system.
 
         Args:
@@ -319,7 +334,7 @@ class total_system:
             + 1j * w * C1p
         ) ** (-1)
 
-    def _SP_P_impedance(self, frequency: float = 0) -> complex:
+    def _SP_P_impedance(self, frequency: float = None) -> complex:
         """Function computing the equivalent impedance for a SP-P topology WPT system.
 
         Args:
@@ -349,6 +364,81 @@ class total_system:
             )
             + 1j * w * C1p
         ) ** (-1)
+
+    def _LCC_LCC_impedance(self, frequency: float = None) -> complex:
+        """Function computing the equivalent impedance for a LCC-LCC topology WPT system.
+
+        Args:
+            frequency (float): Frequency at wich the impedance must be computed. Defaults to None.
+
+        Returns:
+            complex: Equivalent impedance of the system viewed by the source at the frequency past in argument.
+        """
+
+        R1 = self.transmitter.R
+        L1 = self.transmitter.L_s
+        L_tx = self.transmitter.L
+        C1s = self.transmitter.C_s
+        C1p = self.transmitter.C_p
+        M = self.M
+        R2 = self.reciever.R
+        L2 = self.reciever.L_s
+        L_rx = self.reciever.L
+        C2p = self.reciever.C_p
+        C2s = self.reciever.C_s
+        R_l = self.reciever.R_l
+        w = 2 * np.pi * frequency
+        #print(self.name, self.topology)
+        #print(f"R1 : {R1}, L1 : {L1}, L_tx : {L_tx}, C1s : {C1s}, C1p : {C1p}, M : {M}, R2 {R2}, L2 : {L2}, L_rx {L_rx}, C2p : {C2p}, C2s : {C2s}, R_l : {R_l} ")
+        Z2 = (
+            R2
+            + 1 / (1j * w * C2s)
+            + (L2 * 1j * w + R_l) / (L2 * C2p * (1j * w) ** 2 + R_l * C2p * 1j * w)
+        )
+        Ztx = (
+            R1
+            + 1 / (1j * w * C1s)
+            + (L_tx - M) * 1j * w
+            + (M * (L_rx - M) * (1j * w) ** 2 + M * 1j * w * Z2) / (1j * w * L_rx + Z2)
+        )
+
+        return L1 * 1j * w + Ztx / (1 + C1p * 1j * w * Ztx)
+
+    def _LCC_S_impedance(self, frequency: float = None) -> complex:
+        """Function computing the equivalent impedance for a LCC-S topology WPT system.
+
+        Args:
+            frequency (float): Frequency at wich the impedance must be computed. Defaults to None.
+
+        Returns:
+            complex: Equivalent impedance of the system viewed by the source at the frequency past in argument.
+        """
+
+        R1 = self.transmitter.R
+        L1 = self.transmitter.L_s
+        L_tx = self.transmitter.L
+        C1s = self.transmitter.C_s
+        C1p = self.transmitter.C_p
+        M = self.M
+        R2 = self.reciever.R
+        L_rx = self.reciever.L
+        C2s = self.reciever.C_s
+        R_l = self.reciever.R_l
+        w = 2 * np.pi * frequency
+
+        Z2 = (
+            R2 +
+            C2s +
+            R_l
+        )
+        Ztx = (
+            R1
+            + 1 / (1j * w * C1s)
+            + (L_tx - M) * 1j * w
+            + (M * (L_rx - M) * (1j * w) ** 2 + M * 1j * w * Z2) / (1j * w * L_rx + Z2)
+        )
+
+        return L1 * 1j * w + Ztx / (1 + C1p * 1j * w * Ztx)
 
     def _mutual_from_geometry(self):
         """Compute the mutual inductance from the coils geometry.
