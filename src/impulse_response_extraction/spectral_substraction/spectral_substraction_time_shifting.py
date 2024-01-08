@@ -99,7 +99,7 @@ def extract_noise(clean_signal:list=None, noisy_signal:list=None, sampling_perio
     real_f0 = freqs[index_of_f0]
 
     tau_clean = - np.log(clean_fft[index_of_f0])/(2*np.pi * real_f0)
-    clean_fft = np.abs(clean_fft) * np.exp(2*np.pi * 1j*np.angle(clean_fft) + -2*1j*np.pi*freqs*tau_clean)
+    clean_fft = np.abs(clean_fft) * np.exp(2*np.pi * 1j*np.angle(clean_fft) + 2*1j*np.pi*freqs*tau_clean)
 
     phase_difference_at_f0 = np.angle(clean_fft[index_of_f0]) - np.angle(noisy_fft[index_of_f0]) # = e^(- \tau * w0)
     tau = - np.log(phase_difference_at_f0) / (2*np.pi * real_f0)

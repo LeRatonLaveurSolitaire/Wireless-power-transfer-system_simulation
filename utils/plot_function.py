@@ -70,12 +70,12 @@ def bode_plot(
 
     # grid, label and legend
 
-    # ax1.grid()
+    ax1.grid()
     ax1.set_ylabel("Gain (dB)")
     ax1.set_xscale("log")
     ax1.legend()
 
-    # ax2.grid()
+    ax2.grid()
     ax2.set_xlabel("frequency (Hz)")
     ax2.set_ylabel("Phase (deg)")
     ax2.set_xscale("log")

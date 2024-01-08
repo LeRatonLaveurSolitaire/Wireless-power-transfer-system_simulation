@@ -12,15 +12,72 @@ from nn_model import NN_model
 from dataset_class import CustomDataset
 
 
+def delinearise_R_l(R_l: float = 0):
+    return 10 ** ((0.2 * R_l) + 1)
+
+
+def delinearise_M(M: float = 0):
+    return 10 ** ((0.15 * M) - 5.5)
+
+
+def delinearise_f2(f2: float = 0):
+    return 500 * f2 + 85000
+
+
+def pretty_print(real: list = None, estim: list = None):
+    real_r = delinearise_R_l(real[0])
+    real_m = delinearise_M(real[1]) * 10**6
+    real_f = delinearise_f2(real[2])
+    estim_r = delinearise_R_l(estim[0])
+    estim_m = delinearise_M(estim[1]) * 10**6
+    estim_f = delinearise_f2(estim[2])
+
+    print("|" + "-" * 37 + "|")
+    print("| Parameter | Real value | Estimation |")
+    print("|" + "-" * 11 + "|" + "-" * 12 + "|" + "-" * 12 + "|")
+    print(
+        "|"
+        + f"{'R_l (Ohm)':^11}"
+        + "|"
+        + f"{real_r:^12.3f}"
+        + "|"
+        + f"{estim_r:^12.3f}"
+        + "|"
+    )
+    print("|" + "-" * 11 + "|" + "-" * 12 + "|" + "-" * 12 + "|")
+    print(
+        "|"
+        + f"{'M (µH)':^11}"
+        + "|"
+        + f"{real_m:^12.2f}"
+        + "|"
+        + f"{estim_m:^12.2f}"
+        + "|"
+    )
+    print("|" + "-" * 11 + "|" + "-" * 12 + "|" + "-" * 12 + "|")
+    print(
+        "|"
+        + f"{'f_2 (Hz)':^11}"
+        + "|"
+        + f"{real_f:^12.0f}"
+        + "|"
+        + f"{estim_f:^12.0f}"
+        + "|"
+    )
+    print("|" + "-" * 37 + "|" + "\n")
+
+
 def main():
     """Main function of the script."""
 
     # Load dataset
 
-    dataet_path = "dataset.pkl"
+    dataet_path = "src/parameters_estimators/NN_estimator/dataset.pkl"
 
+    print("Loading dataset...")
     dataset = CustomDataset()
     dataset.load(dataet_path)
+    print("Dataset sucessfully loaded !")
 
     # Config tensorboard
 
@@ -33,8 +90,8 @@ def main():
 
     # Hyperparameters
 
-    num_epochs = 250
-    batch_size = 4096
+    num_epochs = 150
+    batch_size = 512
     learning_rate = 0.001
 
     # Split dataset into training/test datasets
@@ -80,6 +137,8 @@ def main():
 
     # Training
 
+    print("Start training...")
+
     start_time = time.time()
     min_inaccuracy = float("inf")
 
@@ -118,7 +177,7 @@ def main():
                     for j in range(len(output_tensors[i])):
                         total_inaccuracy_per_cent += (
                             abs((output_tensors[i][j] - outputs[i][j]))
-                            / (len(output_tensors[i]) * output_tensors[i][j])
+                            / (abs(output_tensors[i][j]))
                             * 100
                         ).item()
                 nbr_samples += len(input_tensors)
@@ -131,7 +190,10 @@ def main():
 
         if avg_inaccuracy_per_cent < min_inaccuracy:
             min_inaccuracy = avg_inaccuracy_per_cent
-            torch.save(model.state_dict(), "models/most_accurate_model.pt")
+            torch.save(
+                model.state_dict(),
+                "src/parameters_estimators/NN_estimator/models/most_accurate_model.pt",
+            )
 
         if epoch % 10 == 0:
             # Print time since beggining of training, number of epoch and loss
@@ -144,16 +206,17 @@ def main():
             )
             print("Estimation exemple : ")
             with torch.no_grad():
-                print(
-                    f"Real values (R_l, M, f2) : {dataset[42][1].tolist()} Estimation (R_l, M, f2): {model(dataset[42][0]).tolist()}"
-                )
-                print(
-                    f"Real values (R_l, M, f2) : {dataset[42*2][1].tolist()} Estimation (R_l, M, f2): {model(dataset[42*2][0]).tolist()}"
-                )
-                print(
-                    f"Real values (R_l, M, f2) : {dataset[42*3][1].tolist()} Estimation (R_l, M, f2): {model(dataset[42*3][0]).tolist()}"
-                )
+                real = dataset[42][1].tolist()
+                estim = model(dataset[42][0]).tolist()
+                pretty_print(real=real, estim=estim)
 
+                real = dataset[43][1].tolist()
+                estim = model(dataset[43][0]).tolist()
+                pretty_print(real=real, estim=estim)
+
+                real = dataset[44][1].tolist()
+                estim = model(dataset[44][0]).tolist()
+                pretty_print(real=real, estim=estim)
             # Save trained model during training
 
             torch.save(
@@ -163,7 +226,7 @@ def main():
                     "optimizer_state_dict": optimizer.state_dict(),
                     "loss": loss,
                 },
-                f"models/model_at_epoch_{epoch}.pt",
+                f"src/parameters_estimators/NN_estimator/models/model_at_epoch_{epoch}.pt",
             )
 
     writer.flush()
@@ -195,20 +258,22 @@ def main():
 
     # Save final model
 
-    model_path = "models/final_model.pt"
+    model_path = "src/parameters_estimators/NN_estimator/models/final_model.pt"
     torch.save(model.state_dict(), model_path)
 
     # Print some estimation
 
-    print(
-        f"Real values (R_l, M, f2) : {dataset[42][1].tolist()} Estimation (R_l, M, f2): {model(dataset[42][0]).tolist()}"
-    )
-    print(
-        f"Real values (R_l, M, f2) : {dataset[42*2][1].tolist()} Estimation (R_l, M, f2): {model(dataset[42*2][0]).tolist()}"
-    )
-    print(
-        f"Real values (R_l, M, f2) : {dataset[42*3][1].tolist()} Estimation (R_l, M, f2): {model(dataset[42*3][0]).tolist()}"
-    )
+    real = dataset[42][1].tolist()
+    estim = model(dataset[42][0]).tolist()
+    pretty_print(real=real, estim=estim)
+
+    real = dataset[43][1].tolist()
+    estim = model(dataset[43][0]).tolist()
+    pretty_print(real=real, estim=estim)
+
+    real = dataset[44][1].tolist()
+    estim = model(dataset[44][0]).tolist()
+    pretty_print(real=real, estim=estim)
 
 
 if __name__ == "__main__":

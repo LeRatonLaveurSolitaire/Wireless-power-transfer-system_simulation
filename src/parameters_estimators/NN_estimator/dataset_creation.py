@@ -10,8 +10,8 @@ import numpy as np
 import sys
 import os
 
-path_to_utils = os.path.join( sys.path[0],'..', '..', '..', 'utils')
-sys.path.insert(0,path_to_utils)
+path_to_utils = os.path.join(sys.path[0], "..", "..", "..", "utils")
+sys.path.insert(0, path_to_utils)
 
 import wpt_system_class as wpt
 from dataset_class import CustomDataset
@@ -52,7 +52,12 @@ def main():
 
         f2 = 1 / (2 * np.pi * (L_2_2 * C2) ** 0.5)
 
-        output_list = [R_l, M * 1e6, f2]
+        # Normalizing dataset do have value between [-1;1]
+        R_l_data = (np.log10(R_l) - 1) / 0.2
+        M_data = (np.log10(M) + 5.5) / 0.15
+        f2_data = (f2 - 85000) / 500
+
+        output_list = [R_l_data, M_data, f2_data]
 
         primary = wpt.transmitter(topology="S", L=L1, C_s=C1, R=R1)
         secondary = wpt.reciever(topology="S", L=L_2_2, R=R2, C_s=C2, R_l=R_l)
@@ -75,7 +80,11 @@ def main():
     print("Creation of the dataset... 100%")
     print("Saving the dataset as a pickle file")
     dataset = CustomDataset(data=data)
-    dataset.save(file_path="dataset.pkl")
+    dataset.save(
+        file_path=os.path.join(
+            "src", "parameters_estimators", "NN_estimator", "dataset.pkl"
+        )
+    )
     print("Done !")
 
 
