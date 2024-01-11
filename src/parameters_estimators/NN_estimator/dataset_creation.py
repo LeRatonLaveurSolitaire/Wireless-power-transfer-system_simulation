@@ -29,14 +29,14 @@ def main():
     R2 = 0
     L2 = 4.82e-6
     C2 = 1 / ((2 * np.pi * f0) ** 2 * L2)
-    M_bound = [1e-7, 1e-4]
-    R_l_bound = [0.1, 1000]
+    M_bound = [1e-6, 1e-4]
+    R_l_bound = [0.1, 100]
     L_2_bound = [
-        L2 * 79 / 85,
-        L2 * 90 / 85,
+        L2 ,#* 79 / 85,
+        L2 ,#* 90 / 85,
     ]  # enable to vary the resonance frequency between 79kHz and 90kHz
 
-    frequencies_to_test = np.geomspace(50000, 144500, num=50, dtype=np.int64)
+    frequencies_to_test = np.geomspace(50000, 144500, num=15, dtype=np.int64)
 
     # dataset parameters
 
@@ -53,11 +53,11 @@ def main():
         f2 = 1 / (2 * np.pi * (L_2_2 * C2) ** 0.5)
 
         # Normalizing dataset do have value between [-1;1]
-        R_l_data = (np.log10(R_l) - 1) / 0.2
-        M_data = (np.log10(M) + 5.5) / 0.15
+        R_l_data = (np.log10(R_l) - 0.5) / 0.15
+        M_data = (np.log10(M) + 5) / 0.1
         f2_data = (f2 - 85000) / 500
 
-        output_list = [R_l_data, M_data, f2_data]
+        output_list = [R_l_data, M_data]
 
         primary = wpt.transmitter(topology="S", L=L1, C_s=C1, R=R1)
         secondary = wpt.reciever(topology="S", L=L_2_2, R=R2, C_s=C2, R_l=R_l)
@@ -69,8 +69,8 @@ def main():
             impedence = wpt_system.impedance(frequency=frequency)
             Z1 = R1 + L1 * 2 * np.pi * frequency + 1 / (C1 * 2 * np.pi * frequency)
             Z2 = impedence - Z1
-            input_list.append(np.real(Z2))
-            input_list.append(np.imag(Z2))
+            input_list.append(np.absolute(Z2))
+            input_list.append(np.angle(Z2))
 
         data.append((input_list, output_list))
 

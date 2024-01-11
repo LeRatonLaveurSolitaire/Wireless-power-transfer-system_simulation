@@ -1,6 +1,7 @@
-h5py==3.9.0
-matplotlib==3.7.2
-numpy==1.24.3
-pandas==2.0.3
-scipy==1.11.1
-torch==2.1.0
+h5py==3.10.0
+matplotlib==3.8.2
+numpy==1.26.3
+pandas==2.1.4
+scipy==1.11.4
+torch==2.1.2
+tensorboard==1.15.0
