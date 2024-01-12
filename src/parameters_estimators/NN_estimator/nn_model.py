@@ -18,10 +18,10 @@ class NN_model(nn.Module):
         super(NN_model, self).__init__()
 
         self.input_size = input_size
-        self.hidden1_size = 64
-        self.hidden2_size = 256
-        self.hidden3_size = 256
-        self.hidden4_size = 64
+        self.hidden1_size = 128
+        self.hidden2_size = 128
+        self.hidden3_size = 128
+        self.hidden4_size = 128
         #self.hidden5_size = 256
         #self.hidden6_size = 256
         #self.hidden7_size = 100

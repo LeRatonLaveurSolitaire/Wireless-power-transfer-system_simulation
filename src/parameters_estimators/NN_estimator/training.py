@@ -17,7 +17,9 @@ def delinearise_R_l(R_l: float = 0):
 
 
 def delinearise_M(M: float = 0):
-    return 10 ** ((0.1 * M) - 5)
+    L1 = 236e-6
+    L2 = 4.82e-6
+    return 10 ** ((0.1 * M)) *(0.1 * (L1*L2)**0.5)
 
 
 def delinearise_f2(f2: float = 0):
@@ -72,11 +74,11 @@ def main():
 
     # Load dataset
 
-    dataet_path = "src/parameters_estimators/NN_estimator/dataset.pkl"
+    dataset_path = "src/parameters_estimators/NN_estimator/dataset.pkl"
 
     print("Loading dataset...")
     dataset = CustomDataset()
-    dataset.load(dataet_path)
+    dataset.load(dataset_path)
     print("Dataset sucessfully loaded !")
 
     # Config tensorboard
@@ -254,7 +256,7 @@ def main():
             nbr_samples += len(input_tensors)
 
     avg_inaccuracy_per_cent = total_inaccuracy_per_cent / nbr_samples
-    print(f"Final Inaccuracy :{avg_inaccuracy_per_cent:04.5f}%")
+    print(f"Final Inaccuracy :{avg_inaccuracy_per_cent:04.1f}%")
     
     # Save final model
 

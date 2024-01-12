@@ -29,8 +29,8 @@ def main():
     R2 = 0
     L2 = 4.82e-6
     C2 = 1 / ((2 * np.pi * f0) ** 2 * L2)
-    M_bound = [1e-6, 1e-4]
-    R_l_bound = [0.1, 100]
+    M_bound = [0.01*(L1*L2)**0.5, (L1*L2)**0.5]
+    R_l_bound = [0.1, 10]
     L_2_bound = [
         L2 ,#* 79 / 85,
         L2 ,#* 90 / 85,
@@ -53,8 +53,8 @@ def main():
         f2 = 1 / (2 * np.pi * (L_2_2 * C2) ** 0.5)
 
         # Normalizing dataset do have value between [-1;1]
-        R_l_data = (np.log10(R_l) - 0.5) / 0.15
-        M_data = (np.log10(M) + 5) / 0.1
+        R_l_data = (np.log10(R_l)) / 0.1
+        M_data = (np.log10(M/(0.1 * (L1*L2)**0.5)) ) / 0.1
         f2_data = (f2 - 85000) / 500
 
         output_list = [R_l_data, M_data]
