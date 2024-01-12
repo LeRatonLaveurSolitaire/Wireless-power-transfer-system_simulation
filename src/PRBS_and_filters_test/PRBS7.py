@@ -3,29 +3,30 @@ import pandas
 from scipy.fft import fft, fftfreq
 import numpy as np
 
+
 def extract_bit(number, index):
     return (number & (1 << index)) >> index
 
+
 PRBS_value = 0b0100000
-to_add = extract_bit(PRBS_value, 0)^extract_bit(PRBS_value, 1)
+to_add = extract_bit(PRBS_value, 0) ^ extract_bit(PRBS_value, 1)
 values_list = []
 
-for i in range (130):
+for i in range(130):
     values_list.append(PRBS_value)
     values_list.append(PRBS_value)
     values_list.append(PRBS_value)
     values_list.append(PRBS_value)
 
-    PRBS_value = (PRBS_value  >> 1) & 0x7F
-    to_add = extract_bit(PRBS_value, 0)^extract_bit(PRBS_value, 1)
-    PRBS_value += (to_add << 7)
-    
+    PRBS_value = (PRBS_value >> 1) & 0x7F
+    to_add = extract_bit(PRBS_value, 0) ^ extract_bit(PRBS_value, 1)
+    PRBS_value += to_add << 7
 
 
 only_fst_bit = [10 * ((value & 0x01) - 0.5) for value in values_list]
 
 
-plt.plot([i/4 for i in range(len(only_fst_bit))],only_fst_bit)
+plt.plot([i / 4 for i in range(len(only_fst_bit))], only_fst_bit)
 plt.show()
 
 # PRBS_series = pandas.Series(only_fst_bit)
@@ -39,8 +40,6 @@ plt.show()
 
 
 # PRBS_period = 1/( 8 *85000)
-
-
 
 
 # print("computing FFT please wait")

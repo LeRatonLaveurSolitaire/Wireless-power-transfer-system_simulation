@@ -178,7 +178,7 @@ class total_system:
     ) -> [list, list, list]:
         gain_dB, phase = [], []
         freqs = np.linspace(min_freq, max_freq, nb_samples)
-        #print(f"topology : {self.topology}, impedance at f0 : {self.impedance(85000)}")
+        # print(f"topology : {self.topology}, impedance at f0 : {self.impedance(85000)}")
         for freq in freqs:
             impedance_at_freq = self.impedance(freq)
             gain_dB.append(20 * np.log10(np.absolute(impedance_at_freq)))
@@ -388,8 +388,8 @@ class total_system:
         C2s = self.reciever.C_s
         R_l = self.reciever.R_l
         w = 2 * np.pi * frequency
-        #print(self.name, self.topology)
-        #print(f"R1 : {R1}, L1 : {L1}, L_tx : {L_tx}, C1s : {C1s}, C1p : {C1p}, M : {M}, R2 {R2}, L2 : {L2}, L_rx {L_rx}, C2p : {C2p}, C2s : {C2s}, R_l : {R_l} ")
+        # print(self.name, self.topology)
+        # print(f"R1 : {R1}, L1 : {L1}, L_tx : {L_tx}, C1s : {C1s}, C1p : {C1p}, M : {M}, R2 {R2}, L2 : {L2}, L_rx {L_rx}, C2p : {C2p}, C2s : {C2s}, R_l : {R_l} ")
         Z2 = (
             R2
             + 1 / (1j * w * C2s)
@@ -426,11 +426,7 @@ class total_system:
         R_l = self.reciever.R_l
         w = 2 * np.pi * frequency
 
-        Z2 = (
-            R2 +
-            C2s +
-            R_l
-        )
+        Z2 = R2 + C2s + R_l
         Ztx = (
             R1
             + 1 / (1j * w * C1s)

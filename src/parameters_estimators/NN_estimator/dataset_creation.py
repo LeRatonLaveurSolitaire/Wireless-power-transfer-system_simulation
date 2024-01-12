@@ -29,11 +29,11 @@ def main():
     R2 = 0
     L2 = 4.82e-6
     C2 = 1 / ((2 * np.pi * f0) ** 2 * L2)
-    M_bound = [0.01*(L1*L2)**0.5, (L1*L2)**0.5]
+    M_bound = [0.01 * (L1 * L2) ** 0.5, (L1 * L2) ** 0.5]
     R_l_bound = [0.1, 10]
     L_2_bound = [
-        L2 ,#* 79 / 85,
-        L2 ,#* 90 / 85,
+        L2,  # * 79 / 85,
+        L2,  # * 90 / 85,
     ]  # enable to vary the resonance frequency between 79kHz and 90kHz
 
     frequencies_to_test = np.geomspace(50000, 144500, num=15, dtype=np.int64)
@@ -54,7 +54,7 @@ def main():
 
         # Normalizing dataset do have value between [-1;1]
         R_l_data = (np.log10(R_l)) / 0.1
-        M_data = (np.log10(M/(0.1 * (L1*L2)**0.5)) ) / 0.1
+        M_data = (np.log10(M / (0.1 * (L1 * L2) ** 0.5))) / 0.1
         f2_data = (f2 - 85000) / 500
 
         output_list = [R_l_data, M_data]

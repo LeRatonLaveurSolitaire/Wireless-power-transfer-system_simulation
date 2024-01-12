@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-path_to_utils = os.path.join( sys.path[0],'..', '..', '..', 'utils')
-sys.path.insert(0,path_to_utils)
+path_to_utils = os.path.join(sys.path[0], "..", "..", "..", "utils")
+sys.path.insert(0, path_to_utils)
 
 from plot_function import bode_plot
 import wpt_system_class as wpt
@@ -69,7 +69,7 @@ def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_fa
 def extract_noise(clean_signal, noisy_signal):
     """Noise extraction function using spectrum substraction.
     This method also integrate a phase compensation technique.
-    
+
     Working principle :
         * Compute FFT of the clean signal
         * Compute FFT of the noisy signal
@@ -109,8 +109,10 @@ def extract_noise(clean_signal, noisy_signal):
 
     return noise_signal
 
-def div(a,b):
-    return a/b
+
+def div(a, b):
+    return a / b
+
 
 def main():
     """Main function of the script."""
@@ -143,16 +145,14 @@ def main():
         current.pop(0)
         voltage.pop(0)
 
-
     # FFT & filtering
 
     sampling_period = 1e-6
-    fft_v = np.fft.fft(np.array(voltage[len(voltage)//5:]))
-    fft_i = np.fft.fft(np.array(current[len(current)//5:]))
+    fft_v = np.fft.fft(np.array(voltage[len(voltage) // 5 :]))
+    fft_i = np.fft.fft(np.array(current[len(current) // 5 :]))
 
+    fft_z = fft_v / fft_i
 
-    fft_z = fft_v/fft_i  
-    
     freqs = np.fft.fftfreq(n=len(fft_z), d=sampling_period)
 
     fft_z = fft_z[: len(fft_z) // 2]  # //2 to remove negatve frequency
@@ -172,15 +172,13 @@ def main():
 
     # Applie the fractionnal decade smoothing technique
 
-    smoothed_impedance = fractional_decade_smoothing_impedance(
-        fft_z, freqs_z, 1.15
-    )
+    smoothed_impedance = fractional_decade_smoothing_impedance(fft_z, freqs_z, 1.15)
 
     # Adjust static gain and phase
 
     static_gain = 1
     # adjust the phase so the mean between 75000 and 95000 is 0 wich should be the case in the real system
-    #phase_gain = -np.mean(np.angle(smoothed_impedance[np.where((freqs_z  < 95_000) & (freqs_z > 75_000)) ])) 
+    # phase_gain = -np.mean(np.angle(smoothed_impedance[np.where((freqs_z  < 95_000) & (freqs_z > 75_000)) ]))
 
     # smoothed_impedance = [
     #     i / static_gain * np.exp(1j * phase_gain) for i in smoothed_impedance
@@ -265,9 +263,9 @@ def main():
         f_max=f_max,
         nb_samples=nb_samples,
         f0=f0,
-        samples=[fft_z, smoothed_impedance, 1/fft_impulse],#,fft_impulse],
-        samples_frequency=[freqs_z, freqs_z, freqs_impulse],#,freqs_impulse],
-        samples_names=["row fft", "smoothed & adjusted","Impulse"],#,"impulse"],
+        samples=[fft_z, smoothed_impedance, 1 / fft_impulse],  # ,fft_impulse],
+        samples_frequency=[freqs_z, freqs_z, freqs_impulse],  # ,freqs_impulse],
+        samples_names=["row fft", "smoothed & adjusted", "Impulse"],  # ,"impulse"],
         title="Result with PRBS 7, PhD values with P&O identification",
     )
 

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-path_to_utils = os.path.join( sys.path[0],'..', '..', '..', 'utils')
-sys.path.insert(0,path_to_utils)
+path_to_utils = os.path.join(sys.path[0], "..", "..", "..", "utils")
+sys.path.insert(0, path_to_utils)
 
 from plot_function import bode_plot
 import wpt_system_class as wpt
@@ -69,7 +69,7 @@ def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_fa
 def extract_noise(clean_signal, noisy_signal):
     """Noise extraction function using spectrum substraction.
     This method also integrate a phase compensation technique.
-    
+
     Working principle :
         * Compute FFT of the clean signal
         * Compute FFT of the noisy signal
@@ -100,7 +100,7 @@ def extract_noise(clean_signal, noisy_signal):
 
     # Remove clean signal spectrum from compensated noisy signal spectrum
     noise_spectrum = phase_compensated_noisy_fft - clean_fft
-    
+
     # Retrieve noise in time domain
     noise_signal_fft = np.fft.ifft(noise_spectrum)
 
@@ -169,12 +169,14 @@ def main():
 
     sampling_period = 1e-6
 
-    fft_noise = np.fft.fft(noise[len(noise)//4:] ) # Compute FFT with impulse response truncation for better results
+    fft_noise = np.fft.fft(
+        noise[len(noise) // 4 :]
+    )  # Compute FFT with impulse response truncation for better results
     freqs = np.fft.fftfreq(n=len(fft_noise), d=sampling_period)
 
     fft_noise = fft_noise[: len(fft_noise) // 2]  # //2 to remove negatve frequency
     freqs_noise = freqs[: len(freqs) // 2]  # //2 to remove negatve frequency
-    
+
     # Cut the high frequency
 
     # while freqs_noise[-1] > 105000:
@@ -199,10 +201,17 @@ def main():
 
     # Adjust the phase so the mean between 75000 and 95000 is 0 wich should be the case in the real system
 
-    phase_gain = -np.mean(np.angle(smoothed_impedance[np.where((freqs_noise  < 95_000) & (freqs_noise > 75_000)) ])) 
+    phase_gain = -np.mean(
+        np.angle(
+            smoothed_impedance[
+                np.where((freqs_noise < 95_000) & (freqs_noise > 75_000))
+            ]
+        )
+    )
 
     smoothed_impedance = [
-        impedance / static_gain * np.exp(1j * phase_gain) for impedance in smoothed_impedance
+        impedance / static_gain * np.exp(1j * phase_gain)
+        for impedance in smoothed_impedance
     ]
 
     # Impulse method
@@ -274,7 +283,7 @@ def main():
     )
 
     np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-    #print(freqs_noise)
+    # print(freqs_noise)
     # plot the 3 methods on a Bode diagram
 
     f_min = freqs_noise[1]
@@ -286,9 +295,13 @@ def main():
         f_max=f_max,
         nb_samples=nb_samples,
         f0=f0,
-        samples=[1/fft_noise, 1/np.array(smoothed_impedance),1/np.array(fft_impulse)],
-        samples_frequency=[freqs_noise, freqs_noise,freqs_impulse],
-        samples_names=[ "raw","estimation","impulse response"],
+        samples=[
+            1 / fft_noise,
+            1 / np.array(smoothed_impedance),
+            1 / np.array(fft_impulse),
+        ],
+        samples_frequency=[freqs_noise, freqs_noise, freqs_impulse],
+        samples_names=["raw", "estimation", "impulse response"],
         title="Result with PRBS 10, start-up values",
     )
 

@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-path_to_utils = os.path.join( sys.path[0],'..', '..', '..', 'utils')
-sys.path.insert(0,path_to_utils)
+path_to_utils = os.path.join(sys.path[0], "..", "..", "..", "utils")
+sys.path.insert(0, path_to_utils)
 
 from plot_function import bode_plot
 import wpt_system_class as wpt
@@ -18,9 +18,8 @@ def open_mat_file(file_name):
         file_name (str): file path
 
     Returns:
-        numpy.array: n-D numpy array containing the data 
+        numpy.array: n-D numpy array containing the data
     """
-
 
     # Load the .mat file with the h5py library
     mat_file = h5py.File(file_name, "r")
@@ -50,7 +49,7 @@ def X_corr_function(var1, var2):
     Returns:
         list: list of the cross-correlation values.
     """
-    
+
     if len(var1) != len(var2) and var1 % 2 == 0:
         raise ValueError(
             "Error in cross_correlation, the variables don't have the same size."
@@ -62,13 +61,14 @@ def X_corr_function(var1, var2):
     N = len(var1) // 2
     for n in range(N):
         g = 0
-        for m in range(N,2*N):
+        for m in range(N, 2 * N):
             g += 1 / (N) * var1[(N - n + m) % len(var1)] * var2[m]
-        X_corr.append(g/(PRBS_amplitude))
+        X_corr.append(g / (PRBS_amplitude))
 
     return X_corr
 
-def apply_de_emphasis_filter(array,t_s,f_z):
+
+def apply_de_emphasis_filter(array, t_s, f_z):
     """Apply the de-emphsasis filter on "array" after calculating filter coefficient.
 
     Args:
@@ -80,12 +80,12 @@ def apply_de_emphasis_filter(array,t_s,f_z):
         list: filtered array
     """
 
-    coeff = [] # coefficient of the filter truncated at 0.01 in time domain
-    z1 = np.exp(-2 * np.pi * t_s*f_z) # coefficient of the filter in the Z domain
+    coeff = []  # coefficient of the filter truncated at 0.01 in time domain
+    z1 = np.exp(-2 * np.pi * t_s * f_z)  # coefficient of the filter in the Z domain
 
     # computation of the coefficients in time domain
-    while (z1 **(len(coeff)) > 0.01):
-        coeff.append(z1**(len(coeff)))
+    while z1 ** (len(coeff)) > 0.01:
+        coeff.append(z1 ** (len(coeff)))
 
     # new value after filtering
     post_filter = []
@@ -94,13 +94,14 @@ def apply_de_emphasis_filter(array,t_s,f_z):
     for i in range(len(array)):
         new_value = 0
         for j in range(len(coeff)):
-            if i-j  >=0:
-                new_value+= coeff[j] * array[i-j]
+            if i - j >= 0:
+                new_value += coeff[j] * array[i - j]
         post_filter.append(new_value)
 
     return post_filter
 
-def apply_pre_emphasis_filter(array,t_s,f_z):
+
+def apply_pre_emphasis_filter(array, t_s, f_z):
     """Apply the pre-emphsasis filter on "array" after calculating filter coefficient.
 
     Args:
@@ -112,12 +113,12 @@ def apply_pre_emphasis_filter(array,t_s,f_z):
         list: filtered array
     """
 
-    coeff = [] # coefficient of the filter truncated at 0.01 in time domain
-    z1 = np.exp(-2 * np.pi * t_s*f_z) # coefficient of the filter in the Z domain
+    coeff = []  # coefficient of the filter truncated at 0.01 in time domain
+    z1 = np.exp(-2 * np.pi * t_s * f_z)  # coefficient of the filter in the Z domain
 
     # computation of the coefficients in time domain
-    while (z1 **(len(coeff)) > 0.01):
-        coeff.append((len(coeff)==0) - z1**(len(coeff)))
+    while z1 ** (len(coeff)) > 0.01:
+        coeff.append((len(coeff) == 0) - z1 ** (len(coeff)))
 
     # new value after filtering
     post_filter = []
@@ -126,8 +127,8 @@ def apply_pre_emphasis_filter(array,t_s,f_z):
     for i in range(len(array)):
         new_value = 0
         for j in range(len(coeff)):
-            if i-j  >=0:
-                new_value+= coeff[j] * array[i-j]
+            if i - j >= 0:
+                new_value += coeff[j] * array[i - j]
         post_filter.append(new_value)
 
     return post_filter
@@ -148,20 +149,25 @@ def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_fa
     for i, freq in enumerate(frequencies):
         lower_bound = freq / fractional_factor
         upper_bound = freq * fractional_factor
-        
+
         # Find indices within the frequency range for smoothing
-        indices = np.where((frequencies >= lower_bound) & (frequencies <= upper_bound))[0]
-        
+        indices = np.where((frequencies >= lower_bound) & (frequencies <= upper_bound))[
+            0
+        ]
+
         # Calculate the smoothed impedance within the range
-        smoothed_impedance = np.mean(np.absolute(impedances[indices]))*np.exp(1j* np.mean(np.angle(impedances[indices])))
+        smoothed_impedance = np.mean(np.absolute(impedances[indices])) * np.exp(
+            1j * np.mean(np.angle(impedances[indices]))
+        )
         smoothed_impedances.append(smoothed_impedance)
-    
+
     return np.array(smoothed_impedances)
+
 
 def main():
     """Main function of the script."""
 
-    # Load the variables from the .mat file 
+    # Load the variables from the .mat file
 
     file_name = "sim_data/sim_values_fs_680000.mat"
 
@@ -175,7 +181,7 @@ def main():
         time.append(var[0])
         prbs.append(var[1])
         current.append(var[2])
-    
+
     # Trim the edges where no noise is injected
 
     while prbs[0] == 0:
@@ -188,20 +194,20 @@ def main():
 
     # Cross_correlation method
 
-    #current = apply_pre_emphasis_filter(current,1e-6,42000)
+    # current = apply_pre_emphasis_filter(current,1e-6,42000)
 
     X_corr = X_corr_function(prbs, current)
 
-    sampling_period = 1/680000
-    
-    plt.plot([i*sampling_period for i in range(len(X_corr))],X_corr)
+    sampling_period = 1 / 680000
+
+    plt.plot([i * sampling_period for i in range(len(X_corr))], X_corr)
     plt.show()
 
     fft_X_corr = np.fft.fft(np.array(X_corr))
     freqs = np.fft.fftfreq(n=len(fft_X_corr), d=sampling_period)
 
-    fft_X_corr = fft_X_corr[: len(fft_X_corr) // 2]     # //2 to remove negatve frequency
-    freqs_X_corr = freqs[: len(freqs) // 2]             # //2 to remove negatve frequency
+    fft_X_corr = fft_X_corr[: len(fft_X_corr) // 2]  # //2 to remove negatve frequency
+    freqs_X_corr = freqs[: len(freqs) // 2]  # //2 to remove negatve frequency
 
     # Cut the high frequency
 
@@ -217,8 +223,9 @@ def main():
 
     # Applie the fractionnal decade smoothing technique
 
-    smoothed_impedance = fractional_decade_smoothing_impedance(fft_X_corr,freqs_X_corr,1.07)
-    
+    smoothed_impedance = fractional_decade_smoothing_impedance(
+        fft_X_corr, freqs_X_corr, 1.07
+    )
 
     # impulse method
 
@@ -231,7 +238,7 @@ def main():
     for var in variables:
         time.append(var[0])
         voltage.append(var[1])
-        current.append(var[2]/2.5)
+        current.append(var[2] / 2.5)
 
     while current[0] == 0:
         voltage.pop(0)
@@ -240,8 +247,10 @@ def main():
     fft_impulse = np.fft.fft(np.array(current))
     freqs = np.fft.fftfreq(n=len(fft_impulse), d=T_s)
 
-    fft_impulse = fft_impulse[: len(fft_impulse) // 2]  # //2 to remove negatives frequencies
-    freqs_impulse = freqs[: len(freqs) // 2]            # //2 to remove negatives frequencies
+    fft_impulse = fft_impulse[
+        : len(fft_impulse) // 2
+    ]  # //2 to remove negatives frequencies
+    freqs_impulse = freqs[: len(freqs) // 2]  # //2 to remove negatives frequencies
 
     # Cut the high frequency
 
@@ -277,8 +286,8 @@ def main():
     # plot the 3 methods on a Bode diagram
     # freqs_impulse = np.delete(freqs_impulse,0)
     # freqs_X_corr = np.delete(freqs_X_corr,0)
-    f_min = min(freqs_impulse[1],freqs_X_corr[1])
-    f_max = max(max(freqs_impulse),max(freqs_X_corr))
+    f_min = min(freqs_impulse[1], freqs_X_corr[1])
+    f_max = max(max(freqs_impulse), max(freqs_X_corr))
     nb_samples = 1000
     bode_plot(
         systems=[wpt_system],
@@ -286,9 +295,13 @@ def main():
         f_max=f_max,
         nb_samples=nb_samples,
         f0=f0,
-        samples=[1/np.array(fft_X_corr), 1/np.array(fft_impulse),1/np.array(smoothed_impedance)],
-        samples_frequency=[freqs_X_corr, freqs_impulse,freqs_X_corr],
-        samples_names=["X_corr", "impulse","smoothed"],
+        samples=[
+            1 / np.array(fft_X_corr),
+            1 / np.array(fft_impulse),
+            1 / np.array(smoothed_impedance),
+        ],
+        samples_frequency=[freqs_X_corr, freqs_impulse, freqs_X_corr],
+        samples_names=["X_corr", "impulse", "smoothed"],
     )
 
 

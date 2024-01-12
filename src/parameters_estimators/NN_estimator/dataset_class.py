@@ -2,10 +2,11 @@ import pickle
 from torch.utils.data import Dataset
 import torch
 
+
 class CustomDataset(Dataset):
     """Custor torch dataset with save method."""
-    
-    def __init__(self, data:list=None):
+
+    def __init__(self, data: list = None):
         """Class constructor.
 
         Args:
@@ -20,7 +21,7 @@ class CustomDataset(Dataset):
         """
         self.data = data
 
-    def __len__(self)->int:
+    def __len__(self) -> int:
         """Len method.
 
         Returns:
@@ -29,21 +30,21 @@ class CustomDataset(Dataset):
 
         return len(self.data)
 
-    def __getitem__(self, idx:int=None)->tuple:
+    def __getitem__(self, idx: int = None) -> tuple:
         """Get item method.
 
         Args:
             idx (int): index of the item. Defaults to None.
 
         Returns:
-            tuple: 2 tensors, 1 with the input values and the orther with the output value 
+            tuple: 2 tensors, 1 with the input values and the orther with the output value
         """
         input_values, output_values = self.data[idx]
-        input_tensor = torch.tensor(input_values,dtype=torch.float)
-        output_tensor = torch.tensor(output_values,dtype=torch.float)
+        input_tensor = torch.tensor(input_values, dtype=torch.float)
+        output_tensor = torch.tensor(output_values, dtype=torch.float)
         return input_tensor, output_tensor
 
-    def save(self,file_path:str =None)-> None:
+    def save(self, file_path: str = None) -> None:
         """Function for saving a torch dataset in a pickle file.
 
         Args:
@@ -52,14 +53,13 @@ class CustomDataset(Dataset):
         Raises:
             Exception: in case of empty file_path
         """
-        if not(file_path):
+        if not (file_path):
             raise Exception("Empty file path")
-        
-        with open(file_path, 'wb') as f:
+
+        with open(file_path, "wb") as f:
             pickle.dump(self, f)
 
-
-    def load(self,file_path:str =None)-> Dataset:
+    def load(self, file_path: str = None) -> Dataset:
         """Function for loading a torch dataset from a pickle file.
 
         Args:
@@ -71,10 +71,9 @@ class CustomDataset(Dataset):
         Returns:
             Dataset: PyTorch dataset loaded from the pickle file
         """
-        if not(file_path):
+        if not (file_path):
             raise Exception("Empty file path")
 
-        with open(file_path, 'rb') as f:
+        with open(file_path, "rb") as f:
             pickled = pickle.load(f)
-        self.data=pickled.data
-        
+        self.data = pickled.data

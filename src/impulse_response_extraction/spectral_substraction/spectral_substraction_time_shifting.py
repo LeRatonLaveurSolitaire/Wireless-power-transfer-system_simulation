@@ -4,8 +4,8 @@ import matplotlib.pyplot as plt
 import sys
 import os
 
-path_to_utils = os.path.join( sys.path[0],'..', '..', '..', 'utils')
-sys.path.insert(0,path_to_utils)
+path_to_utils = os.path.join(sys.path[0], "..", "..", "..", "utils")
+sys.path.insert(0, path_to_utils)
 
 from plot_function import bode_plot
 import wpt_system_class as wpt
@@ -66,10 +66,15 @@ def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_fa
     return np.array(smoothed_impedances)
 
 
-def extract_noise(clean_signal:list=None, noisy_signal:list=None, sampling_period:float=None,f0:float=None)-> list:
+def extract_noise(
+    clean_signal: list = None,
+    noisy_signal: list = None,
+    sampling_period: float = None,
+    f0: float = None,
+) -> list:
     """Noise extraction function using spectrum substraction.
     This method also integrate a phase compensation technique.
-    
+
     Working principle :
         * Compute FFT of the clean signal
         * Compute FFT of the noisy signal
@@ -94,20 +99,28 @@ def extract_noise(clean_signal:list=None, noisy_signal:list=None, sampling_perio
 
     # Calculate phase difference between clean and noisy signals
 
-    freqs = np.fft.fftfreq(n=len(clean_fft),d=sampling_period) # create the list of frequencies of the fft
-    index_of_f0 = np.where(np.isclose(freqs, min(np.abs(freqs[:len(freqs)//2]-f0))+f0)) # find the index of the closest frequency to f0
+    freqs = np.fft.fftfreq(
+        n=len(clean_fft), d=sampling_period
+    )  # create the list of frequencies of the fft
+    index_of_f0 = np.where(
+        np.isclose(freqs, min(np.abs(freqs[: len(freqs) // 2] - f0)) + f0)
+    )  # find the index of the closest frequency to f0
     real_f0 = freqs[index_of_f0]
 
-    tau_clean = - np.log(clean_fft[index_of_f0])/(2*np.pi * real_f0)
-    clean_fft = np.abs(clean_fft) * np.exp(2*np.pi * 1j*np.angle(clean_fft) + 2*1j*np.pi*freqs*tau_clean)
+    tau_clean = -np.log(clean_fft[index_of_f0]) / (2 * np.pi * real_f0)
+    clean_fft = np.abs(clean_fft) * np.exp(
+        2 * np.pi * 1j * np.angle(clean_fft) + 2 * 1j * np.pi * freqs * tau_clean
+    )
 
-    phase_difference_at_f0 = np.angle(clean_fft[index_of_f0]) - np.angle(noisy_fft[index_of_f0]) # = e^(- \tau * w0)
-    tau = - np.log(phase_difference_at_f0) / (2*np.pi * real_f0)
+    phase_difference_at_f0 = np.angle(clean_fft[index_of_f0]) - np.angle(
+        noisy_fft[index_of_f0]
+    )  # = e^(- \tau * w0)
+    tau = -np.log(phase_difference_at_f0) / (2 * np.pi * real_f0)
     print(tau)
-    phase_difference = np.angle(noisy_fft) * np.exp(-2*1j*np.pi*freqs*tau) # = e^
+    phase_difference = np.angle(noisy_fft) * np.exp(
+        -2 * 1j * np.pi * freqs * tau
+    )  # = e^
     # Compensate for phase difference in the noisy signal's FFT
-
-    
 
     phase_compensated_noisy_fft = np.abs(noisy_fft) * np.exp(
         1j * (np.angle(noisy_fft) - phase_difference)
@@ -162,7 +175,9 @@ def main():
 
     current = current[len(current) - 2 * len(prbs) : len(current) - len(prbs)]
 
-    noise = extract_noise(clean_signal=current, noisy_signal=current_prbs,sampling_period=1e-6, f0=85_000)
+    noise = extract_noise(
+        clean_signal=current, noisy_signal=current_prbs, sampling_period=1e-6, f0=85_000
+    )
 
     # Plot the clean, noisy and extracted noise signals
     plt.figure(figsize=(10, 6))
@@ -186,13 +201,15 @@ def main():
     # FFT & filtering
 
     sampling_period = 1e-6
-    
-    fft_noise = np.fft.fft(np.array(noise[:])) # Compute FFT and trim edges for better results
+
+    fft_noise = np.fft.fft(
+        np.array(noise[:])
+    )  # Compute FFT and trim edges for better results
     freqs = np.fft.fftfreq(n=len(fft_noise), d=sampling_period)
 
     fft_noise = fft_noise[: len(fft_noise) // 2]  # //2 to remove negatve frequency
     freqs_noise = freqs[: len(freqs) // 2]  # //2 to remove negatve frequency
-    
+
     # Cut the high frequency
 
     # while freqs_noise[-1] > 105000:
@@ -217,10 +234,17 @@ def main():
 
     # Adjust the phase so the mean between 75000 and 95000 is 0 wich should be the case in the real system
 
-    phase_gain = -np.mean(np.angle(smoothed_impedance[np.where((freqs_noise  < 95_000) & (freqs_noise > 75_000)) ])) 
+    phase_gain = -np.mean(
+        np.angle(
+            smoothed_impedance[
+                np.where((freqs_noise < 95_000) & (freqs_noise > 75_000))
+            ]
+        )
+    )
 
     smoothed_impedance = [
-        impedance / static_gain * np.exp(1j * phase_gain) for impedance in smoothed_impedance
+        impedance / static_gain * np.exp(1j * phase_gain)
+        for impedance in smoothed_impedance
     ]
 
     # Impulse method
@@ -302,9 +326,9 @@ def main():
         f_max=f_max,
         nb_samples=nb_samples,
         f0=f0,
-        samples=[ 1/np.array(smoothed_impedance),1/np.array(fft_impulse)],
-        samples_frequency=[  freqs_noise,freqs_impulse],
-        samples_names=[ "estimation","impulse response"],
+        samples=[1 / np.array(smoothed_impedance), 1 / np.array(fft_impulse)],
+        samples_frequency=[freqs_noise, freqs_impulse],
+        samples_names=["estimation", "impulse response"],
         title="Result with PRBS 10, start-up values",
     )
 

@@ -3,7 +3,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 
- # TODO : document the bode_plot function
+# TODO : document the bode_plot function
+
 
 def bode_plot(
     systems: list = None,
@@ -13,7 +14,7 @@ def bode_plot(
     f0: int = None,
     samples: list = None,
     samples_frequency: list = None,
-    samples_names:list = None,
+    samples_names: list = None,
     title: str = None,
 ):
     fig, (ax1, ax2) = plt.subplots(2, 1)
@@ -39,7 +40,7 @@ def bode_plot(
     # Plot the mesured impedance
 
     if samples != None and samples_frequency != None:
-        for i,sample in enumerate(samples):
+        for i, sample in enumerate(samples):
             ax1.plot(
                 samples_frequency[i],
                 [20 * np.log10(np.absolute(impedance)) for impedance in sample],
@@ -58,15 +59,57 @@ def bode_plot(
     if f0 != None:
         y_bot1 = ax1.get_ylim()[0]
         y_top1 = ax1.get_ylim()[1]
-        ax1.text(f0, y_bot1 - (y_top1 - y_bot1) * 0.1, r"$f0$", color="black", ha="center", va="center")
-        ax1.text(2*f0, y_bot1 - (y_top1 - y_bot1) * 0.1, r"$2 f0$", color="black", ha="center", va="center")
-        ax1.text(3*f0, y_bot1 - (y_top1 - y_bot1) * 0.1, r"$3 f0$", color="black", ha="center", va="center")
+        ax1.text(
+            f0,
+            y_bot1 - (y_top1 - y_bot1) * 0.1,
+            r"$f0$",
+            color="black",
+            ha="center",
+            va="center",
+        )
+        ax1.text(
+            2 * f0,
+            y_bot1 - (y_top1 - y_bot1) * 0.1,
+            r"$2 f0$",
+            color="black",
+            ha="center",
+            va="center",
+        )
+        ax1.text(
+            3 * f0,
+            y_bot1 - (y_top1 - y_bot1) * 0.1,
+            r"$3 f0$",
+            color="black",
+            ha="center",
+            va="center",
+        )
 
         y_bot2 = ax2.get_ylim()[0]
         y_top2 = ax2.get_ylim()[1]
-        ax2.text(f0, y_bot2  - (y_top2 - y_bot2) * 0.1, r"$f0$", color="black", ha="center", va="center")
-        ax2.text(2*f0, y_bot2  - (y_top2 - y_bot2) * 0.1, r"$2 f0$", color="black", ha="center", va="center")
-        ax2.text(3*f0, y_bot2  - (y_top2 - y_bot2) * 0.1, r"$3 f0$", color="black", ha="center", va="center")   
+        ax2.text(
+            f0,
+            y_bot2 - (y_top2 - y_bot2) * 0.1,
+            r"$f0$",
+            color="black",
+            ha="center",
+            va="center",
+        )
+        ax2.text(
+            2 * f0,
+            y_bot2 - (y_top2 - y_bot2) * 0.1,
+            r"$2 f0$",
+            color="black",
+            ha="center",
+            va="center",
+        )
+        ax2.text(
+            3 * f0,
+            y_bot2 - (y_top2 - y_bot2) * 0.1,
+            r"$3 f0$",
+            color="black",
+            ha="center",
+            va="center",
+        )
 
     # grid, label and legend
 
