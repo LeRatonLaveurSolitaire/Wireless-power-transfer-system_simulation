@@ -5,3 +5,4 @@ pandas==2.1.4
 scipy==1.11.4
 torch==2.1.2
 tensorboard==1.15.0
+onnx==1.15.0

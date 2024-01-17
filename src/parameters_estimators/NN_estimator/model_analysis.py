@@ -2,7 +2,6 @@ import torch
 import torch.nn as nn
 import torch.cuda as cuda
 from torch.utils.data import dataloader
-from torch.utils.tensorboard import SummaryWriter
 import time
 
 
@@ -70,7 +69,7 @@ def pretty_print(real: list = None, estim: list = None):
 def main():
     dataset_path = "src/parameters_estimators/NN_estimator/dataset.pkl"
     model_path = "src/parameters_estimators/NN_estimator/models/most_accurate_model.pt"
-    thresehold = 1e-6
+    threshold = 1e-6 # compute inaccuacy only for M  > threshold
 
     print("Loading dataset...")
     dataset = CustomDataset()
@@ -85,33 +84,33 @@ def main():
     print("Model sucessfully loaded !\n")
 
     print("Estimation exemple : \n")
-    real = dataset[69][1].tolist()
-    estim = model(dataset[69][0]).tolist()
+    real = dataset[43][1].tolist()
+    estim = model(dataset[43][0]).tolist()
     pretty_print(real=real, estim=estim)
 
-    real = dataset[34][1].tolist()
-    estim = model(dataset[34][0]).tolist()
+    real = dataset[2689][1].tolist()
+    estim = model(dataset[2689][0]).tolist()
     pretty_print(real=real, estim=estim)
 
-    real = dataset[44][1].tolist()
-    estim = model(dataset[44][0]).tolist()
+    real = dataset[0][1].tolist()
+    estim = model(dataset[0][0]).tolist()
     pretty_print(real=real, estim=estim)
 
     inaccuracy = []
 
-    for i, data in enumerate(dataset):
-        if delinearise_M(data[1][1]) > thresehold:
-            output_tensor = data[1]
-            estimation = model(data[0])
+    # for i, data in enumerate(dataset):
+    #     if delinearise_M(data[1][1]) > threshold:
+    #         output_tensor = data[1]
+    #         estimation = model(data[0])
 
-            inn = abs(output_tensor[0] - estimation[0]) / abs(output_tensor[0]) * 100
-            inaccuracy.append(inn)
-            inn = abs(output_tensor[1] - estimation[1]) / abs(output_tensor[1]) * 100
-            inaccuracy.append(inn)
+    #         inn = abs(output_tensor[0] - estimation[0]) / abs(output_tensor[0]) * 100
+    #         inaccuracy.append(inn)
+    #         inn = abs(output_tensor[1] - estimation[1]) / abs(output_tensor[1]) * 100
+    #         inaccuracy.append(inn)
 
-    print(
-        f"Average inaccuracy for data over the threshold : {sum(inaccuracy)/len(inaccuracy):4.2f}\n"
-    )
+    # print(
+    #     f"Average inaccuracy for data over the threshold : {sum(inaccuracy)/len(inaccuracy):4.2f}\n"
+    # )
 
 
 if __name__ == "__main__":
