@@ -11,7 +11,7 @@ from plot_function import bode_plot
 import wpt_system_class as wpt
 
 
-def open_mat_file(file_name):
+def open_mat_file(file_name) -> np.array :
     """Function to open a .mat data file.
 
     Args:
@@ -36,7 +36,7 @@ def open_mat_file(file_name):
     return variables_array
 
 
-def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_factor):
+def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_factor) -> np.array :
     """Fractional decade smoothing.
 
     Args:
@@ -66,7 +66,7 @@ def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_fa
     return np.array(smoothed_impedances)
 
 
-def extract_noise(clean_signal, noisy_signal):
+def extract_noise(clean_signal, noisy_signal) -> (np.array,np.array) :
     """Noise extraction function using spectrum substraction.
     This method also integrate a phase compensation technique.
 
@@ -91,26 +91,26 @@ def extract_noise(clean_signal, noisy_signal):
     noisy_fft = np.fft.fft(noisy_signal)
 
     # Calculate phase difference between clean and noisy signals
-    phase_difference = np.angle(noisy_fft) - np.angle(clean_fft)
+    # phase_difference = np.angle(noisy_fft) - np.angle(clean_fft)
 
     # Compensate for phase difference in the noisy signal's FFT
-    phase_compensated_noisy_fft = np.abs(noisy_fft) * np.exp(
-        1j * (np.angle(noisy_fft) - phase_difference)
-    )
+    # phase_compensated_noisy_fft = np.abs(noisy_fft) * np.exp(
+    #     1j * (np.angle(noisy_fft) - phase_difference)
+    # )
 
     # Remove clean signal spectrum from compensated noisy signal spectrum
-    noise_spectrum = phase_compensated_noisy_fft - clean_fft
+    noise_spectrum = noisy_fft - clean_fft
 
     # Retrieve noise in time domain
     noise_signal_fft = np.fft.ifft(noise_spectrum)
-
+    print(noise_signal_fft)
     # Convert noise signal from frequency domain to time domain
     noise_signal = np.real(noise_signal_fft)
 
-    return noise_signal
+    return noise_signal, noise_spectrum
 
 
-def main():
+def main() -> None :
     """Main function of the script."""
 
     # Load the variables from the .mat file
@@ -145,7 +145,7 @@ def main():
     # extract clean current before PRBS injection
     current = current[len(current) - 2 * len(prbs) : len(current) - len(prbs)]
 
-    noise = extract_noise(clean_signal=current, noisy_signal=current_prbs)
+    noise, noise_spectrum = extract_noise(clean_signal=current[len(current)//2:], noisy_signal=current_prbs[len(current_prbs)//2:])
 
     # Plot the clean, noisy and extracted noise signals
     plt.figure(figsize=(10, 6))
@@ -170,11 +170,11 @@ def main():
     sampling_period = 1e-6
 
     fft_noise = np.fft.fft(
-        noise[len(noise) // 4 :]
+        noise[:]
     )  # Compute FFT with impulse response truncation for better results
-    freqs = np.fft.fftfreq(n=len(fft_noise), d=sampling_period)
+    freqs = np.fft.fftfreq(n=len(noise_spectrum), d=sampling_period)
 
-    fft_noise = fft_noise[: len(fft_noise) // 2]  # //2 to remove negatve frequency
+    fft_noise = fft_noise[: len(noise_spectrum) // 2]  # //2 to remove negatve frequency
     freqs_noise = freqs[: len(freqs) // 2]  # //2 to remove negatve frequency
 
     # Cut the high frequency
@@ -185,9 +185,9 @@ def main():
 
     # Cut the low frequency
 
-    # while freqs_noise[0] < 10000:
-    #     freqs_noise = np.delete(freqs_noise, 0)
-    #     fft_noise = np.delete(fft_noise, 0)
+    while freqs_noise[0] < 10000:
+        freqs_noise = np.delete(freqs_noise, 0)
+        fft_noise = np.delete(fft_noise, 0)
 
     # Applie the fractionnal decade smoothing technique
 
@@ -247,9 +247,9 @@ def main():
 
     # Cut the low frequency for ploting
 
-    # while freqs_impulse[0] < 10000:
-    #     freqs_impulse = np.delete(freqs_impulse, 0)
-    #     fft_impulse = np.delete(fft_impulse, 0)
+    while freqs_impulse[0] < 10000:
+        freqs_impulse = np.delete(freqs_impulse, 0)
+        fft_impulse = np.delete(fft_impulse, 0)
 
     # Model base bode plot
 
@@ -267,13 +267,13 @@ def main():
     # PhD values
     # f0 = 85000
     # L1 = 280.5 * 1e-6
-    # C1 = 12.5 * 1e-9#1 / ((2 * np.pi * f0) ** 2 * L1)
-    # R1 = 0.7
-    # M = 11.2 * 1e-6
-    # L2 = 4.82 * 1e-6
-    # C2 = 29.2 * 1e-9#1 / ((2 * np.pi * f0) ** 2 * L2)
+    # C1 = 12.5 * 1e-9
+    # R1 = 0.6
+    # M = 14.3 * 1e-6
+    # L2 = 120 * 1e-6
+    # C2 = 29.2 * 1e-9 
     # R2 = 0.4
-    # R_l = 3.65
+    # R_l = 3.6
 
     primary_s = wpt.transmitter(L=L1, C_s=C1, R=R1)
     secondary_s = wpt.reciever(L=L2, C_s=C2, R=R2, R_l=R_l)
@@ -296,12 +296,20 @@ def main():
         nb_samples=nb_samples,
         f0=f0,
         samples=[
-            1 / fft_noise,
+            #static_gain / np.array(fft_noise),
             1 / np.array(smoothed_impedance),
             1 / np.array(fft_impulse),
         ],
-        samples_frequency=[freqs_noise, freqs_noise, freqs_impulse],
-        samples_names=["raw", "estimation", "impulse response"],
+        samples_frequency=[
+            #freqs_noise, 
+            freqs_noise, 
+            freqs_impulse,
+            ],
+        samples_names=[
+            #"raw", 
+            "estimation", 
+            "impulse response",
+            ],
         title="Result with PRBS 10, start-up values",
     )
 

@@ -17,7 +17,7 @@ import wpt_system_class as wpt
 from dataset_class import CustomDataset
 
 
-def main():
+def main() -> None :
     """Main script function"""
 
     # data parameters

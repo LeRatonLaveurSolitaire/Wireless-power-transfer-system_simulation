@@ -7,28 +7,34 @@ Created on Wed Nov  8 13:10:01 2023
 
 import matplotlib.pyplot as plt
 
-alpha1 = 0.4
 
-alpha2 = 0.6
+def main()->None:
 
-time = [i / (85000 * 200) for i in range(401)]
-voltage = [0]
+    alpha1 = 0.4
 
-V_dc = 40
+    alpha2 = 0.6
 
-for i in range(400):
-    if i % 200 < 100:
-        if i % 100 > 100 * alpha1:
-            voltage.append(0)
-        else:
-            voltage.append(V_dc)
+    time = [i / (85000 * 200) for i in range(401)]
+    voltage = [0]
 
-    if i % 200 >= 100:
-        if i % 100 > 100 * alpha2:
-            voltage.append(0)
-        else:
-            voltage.append(-V_dc)
+    V_dc = 40
 
-plt.plot(time, voltage)
+    for i in range(400):
+        if i % 200 < 100:
+            if i % 100 > 100 * alpha1:
+                voltage.append(0)
+            else:
+                voltage.append(V_dc)
 
-plt.show()
+        if i % 200 >= 100:
+            if i % 100 > 100 * alpha2:
+                voltage.append(0)
+            else:
+                voltage.append(-V_dc)
+
+    plt.plot(time, voltage)
+
+    plt.show()
+
+if __name__ == "__main__":
+    main()

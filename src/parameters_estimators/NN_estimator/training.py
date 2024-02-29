@@ -12,21 +12,21 @@ from nn_model import NN_model
 from dataset_class import CustomDataset
 
 
-def delinearise_R_l(R_l: float = 0):
+def delinearise_R_l(R_l: float = 0) -> float:
     return 10 ** ((0.15 * R_l) + 0.5)
 
 
-def delinearise_M(M: float = 0):
+def delinearise_M(M: float = 0) -> float:
     L1 = 236e-6
     L2 = 4.82e-6
     return 10 ** ((0.1 * M)) * (0.1 * (L1 * L2) ** 0.5)
 
 
-def delinearise_f2(f2: float = 0):
+def delinearise_f2(f2: float = 0) -> float:
     return 500 * f2 + 85000
 
 
-def pretty_print(real: list = None, estim: list = None):
+def pretty_print(real: list = None, estim: list = None) -> None:
     real_r = delinearise_R_l(real[0])
     real_m = delinearise_M(real[1]) * 10**6
     # real_f = delinearise_f2(real[2])
@@ -69,7 +69,7 @@ def pretty_print(real: list = None, estim: list = None):
     print("|" + "-" * 37 + "|" + "\n")
 
 
-def main():
+def main() -> None:
     """Main function of the script."""
 
     # Load dataset

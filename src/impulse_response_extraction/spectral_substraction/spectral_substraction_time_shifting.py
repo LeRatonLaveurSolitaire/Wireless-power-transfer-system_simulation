@@ -11,7 +11,7 @@ from plot_function import bode_plot
 import wpt_system_class as wpt
 
 
-def open_mat_file(file_name):
+def open_mat_file(file_name) -> list:
     """Function to open a .mat data file.
 
     Args:
@@ -36,7 +36,7 @@ def open_mat_file(file_name):
     return variables_array
 
 
-def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_factor):
+def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_factor) -> list:
     """Fractional decade smoothing.
 
     Args:
@@ -116,7 +116,7 @@ def extract_noise(
         noisy_fft[index_of_f0]
     )  # = e^(- \tau * w0)
     tau = -np.log(phase_difference_at_f0) / (2 * np.pi * real_f0)
-    print(tau)
+
     phase_difference = np.angle(noisy_fft) * np.exp(
         -2 * 1j * np.pi * freqs * tau
     )  # = e^
@@ -138,7 +138,7 @@ def extract_noise(
     return noise_signal
 
 
-def main():
+def main() -> None :
     """Main function of the script."""
 
     # Load the variables from the .mat file
@@ -212,15 +212,15 @@ def main():
 
     # Cut the high frequency
 
-    # while freqs_noise[-1] > 105000:
-    #     freqs_noise = np.delete(freqs_noise,len(freqs_noise)-1)
-    #     fft_noise = np.delete(fft_noise,len(fft_noise)-1)
+    while freqs_noise[-1] > 200000:
+        freqs_noise = np.delete(freqs_noise,len(freqs_noise)-1)
+        fft_noise = np.delete(fft_noise,len(fft_noise)-1)
 
     # Cut the low frequency
 
-    # while freqs_noise[0] < 10000:
-    #     freqs_noise = np.delete(freqs_noise, 0)
-    #     fft_noise = np.delete(fft_noise, 0)
+    while freqs_noise[0] < 10000:
+        freqs_noise = np.delete(freqs_noise, 0)
+        fft_noise = np.delete(fft_noise, 0)
 
     # Applie the fractionnal decade smoothing technique
 
@@ -274,15 +274,15 @@ def main():
 
     # Cut the high frequency for ploting
 
-    # while freqs_impulse[-1] > 105000:
-    #     freqs_impulse = np.delete(freqs_impulse,len(freqs_impulse)-1)
-    #     fft_impulse = np.delete(fft_impulse,len(fft_impulse)-1)
+    while freqs_impulse[-1] > 200000:
+        freqs_impulse = np.delete(freqs_impulse,len(freqs_impulse)-1)
+        fft_impulse = np.delete(fft_impulse,len(fft_impulse)-1)
 
     # Cut the low frequency for ploting
 
-    # while freqs_impulse[0] < 10000:
-    #     freqs_impulse = np.delete(freqs_impulse, 0)
-    #     fft_impulse = np.delete(fft_impulse, 0)
+    while freqs_impulse[0] < 10000:
+        freqs_impulse = np.delete(freqs_impulse, 0)
+        fft_impulse = np.delete(fft_impulse, 0)
 
     # Model base bode plot
 
@@ -300,13 +300,14 @@ def main():
     # PhD values
     # f0 = 85000
     # L1 = 280.5 * 1e-6
-    # C1 = 12.5 * 1e-9#1 / ((2 * np.pi * f0) ** 2 * L1)
-    # R1 = 0.7
-    # M = 11.2 * 1e-6
-    # L2 = 4.82 * 1e-6
-    # C2 = 29.2 * 1e-9#1 / ((2 * np.pi * f0) ** 2 * L2)
+    # C1 = 12.5 * 1e-9
+    # R1 = 0.6
+    # M = 14.3 * 1e-6
+    # L2 = 120 * 1e-6
+    # C2 = 29.2 * 1e-9 
     # R2 = 0.4
-    # R_l = 3.65
+    # R_l = 3.6
+
 
     primary_s = wpt.transmitter(L=L1, C_s=C1, R=R1)
     secondary_s = wpt.reciever(L=L2, C_s=C2, R=R2, R_l=R_l)
@@ -326,9 +327,18 @@ def main():
         f_max=f_max,
         nb_samples=nb_samples,
         f0=f0,
-        samples=[1 / np.array(smoothed_impedance), 1 / np.array(fft_impulse)],
-        samples_frequency=[freqs_noise, freqs_impulse],
-        samples_names=["estimation", "impulse response"],
+        samples=[
+            1/np.array(smoothed_impedance),
+            1/np.array(fft_impulse),
+            ],
+        samples_frequency=[
+            freqs_noise,
+            freqs_impulse,
+            ],
+        samples_names=[
+            "estimation",
+            "impulse response",
+            ],
         title="Result with PRBS 10, start-up values",
     )
 

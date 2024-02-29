@@ -16,7 +16,7 @@ def bode_plot(
     samples_frequency: list = None,
     samples_names: list = None,
     title: str = None,
-):
+)-> None:
     fig, (ax1, ax2) = plt.subplots(2, 1)
     fig.suptitle(title)
 

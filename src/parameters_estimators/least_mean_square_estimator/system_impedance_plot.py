@@ -6,7 +6,7 @@ import utils.wpt_system_class as wpt
 from utils.plot_function import bode_plot
 
 
-def main():
+def main() -> None :
     """Main funcion of the script."""
     # System creation, data from "Wireless Power Transfer Structure Design for Electric Vehicle in Charge While Driving"
 

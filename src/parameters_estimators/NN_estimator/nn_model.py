@@ -79,7 +79,7 @@ class NN_model(nn.Module):
         # self.relu19 = nn.ReLU()
         # self.linear20 = nn.Linear(self.hidden19_size, self.output_size)
 
-    def forward(self, x: torch.tensor = None):
+    def forward(self, x: torch.tensor = None) -> torch.tensor :
         """Forward pass function.
 
         Args:

@@ -2,10 +2,10 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def main():
+def main() -> None:
     K = 1
     T_s = 1e-6
-    f_s = 68000
+    f_s = 42000
     Z1 = np.exp(-2 * np.pi * T_s * f_s)
 
     print(Z1)
@@ -21,13 +21,13 @@ def main():
 
         c = 1 / K * (Z1**n)  # n-th coeiffient of the de-emphasis filter
         cs.append(c)
-
+    print(bs)
     plt.plot([n for n in range(N)], bs, "x")
-    plt.title("pre-emphasis filter coefficient")
-    # plt.show()
+    plt.title("Gain of the pre-emphasis filter coefficient")
+    plt.show()
 
-    plt.plot([n for n in range(N)], cs, "x")
-    plt.title("de-emphasis filter coefficient")
+    # plt.plot([n for n in range(N)], cs, "x")
+    # plt.title("de-emphasis filter coefficient")
     # plt.show()
 
 

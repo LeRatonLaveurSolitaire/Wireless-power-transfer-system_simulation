@@ -169,7 +169,7 @@ def main():
 
     # Load the variables from the .mat file
 
-    file_name = "sim_data/sim_values_fs_680000.mat"
+    file_name = "sim_data/sim_values.mat"
 
     variables = open_mat_file(file_name)
 
@@ -180,7 +180,7 @@ def main():
     for var in variables:
         time.append(var[0])
         prbs.append(var[1])
-        current.append(var[2])
+        current.append(var[2]*25)
 
     # Trim the edges where no noise is injected
 
@@ -198,9 +198,11 @@ def main():
 
     X_corr = X_corr_function(prbs, current)
 
-    sampling_period = 1 / 680000
+    sampling_period = 1e-6
 
-    plt.plot([i * sampling_period for i in range(len(X_corr))], X_corr)
+    plt.plot([i * sampling_period * 1000 for i in range(len(prbs))], prbs)
+    plt.xlabel("Time (ms)")
+    plt.ylabel("current(A)")
     plt.show()
 
     fft_X_corr = np.fft.fft(np.array(X_corr))
@@ -217,9 +219,9 @@ def main():
 
     # Cut the low frequency
 
-    # while freqs_X_corr[0] < 10000:
-    #     freqs_X_corr = np.delete(freqs_X_corr, 0)
-    #     fft_X_corr = np.delete(fft_X_corr, 0)
+    while freqs_X_corr[0] < 10000:
+        freqs_X_corr = np.delete(freqs_X_corr, 0)
+        fft_X_corr = np.delete(fft_X_corr, 0)
 
     # Applie the fractionnal decade smoothing technique
 
@@ -260,9 +262,9 @@ def main():
 
     # Cut the low frequency
 
-    # while freqs_impulse[0] < 10000:
-    #     freqs_impulse = np.delete(freqs_impulse, 0)
-    #     fft_impulse = np.delete(fft_impulse, 0)
+    while freqs_impulse[0] < 10000:
+        freqs_impulse = np.delete(freqs_impulse, 0)
+        fft_impulse = np.delete(fft_impulse, 0)
 
     # Model base bode plot
 
@@ -296,12 +298,20 @@ def main():
         nb_samples=nb_samples,
         f0=f0,
         samples=[
-            1 / np.array(fft_X_corr),
-            1 / np.array(fft_impulse),
+            #1 / np.array(fft_X_corr),
             1 / np.array(smoothed_impedance),
+            1 / np.array(fft_impulse),
         ],
-        samples_frequency=[freqs_X_corr, freqs_impulse, freqs_X_corr],
-        samples_names=["X_corr", "impulse", "smoothed"],
+        samples_frequency=[
+            #freqs_X_corr,  
+            freqs_X_corr,
+            freqs_impulse,
+            ],
+        samples_names=[
+            #"X_corr", 
+            "cross correlation",
+            "impulse", 
+            ],
     )
 
 

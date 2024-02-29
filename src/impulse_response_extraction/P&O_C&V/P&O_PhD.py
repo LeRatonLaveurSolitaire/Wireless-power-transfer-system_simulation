@@ -11,7 +11,7 @@ from plot_function import bode_plot
 import wpt_system_class as wpt
 
 
-def open_mat_file(file_name):
+def open_mat_file(file_name) -> np.array :
     """Function to open a .mat data file.
 
     Args:
@@ -36,7 +36,7 @@ def open_mat_file(file_name):
     return variables_array
 
 
-def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_factor):
+def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_factor) -> np.array :
     """Fractional decade smoothing.
 
     Args:
@@ -66,7 +66,7 @@ def fractional_decade_smoothing_impedance(impedances, frequencies, fractional_fa
     return np.array(smoothed_impedances)
 
 
-def extract_noise(clean_signal, noisy_signal):
+def extract_noise(clean_signal, noisy_signal) -> list :
     """Noise extraction function using spectrum substraction.
     This method also integrate a phase compensation technique.
 
@@ -110,11 +110,7 @@ def extract_noise(clean_signal, noisy_signal):
     return noise_signal
 
 
-def div(a, b):
-    return a / b
-
-
-def main():
+def main() -> None :
     """Main function of the script."""
 
     # Load the variables from the .mat file
@@ -125,7 +121,7 @@ def main():
 
     time, prbs, current, voltage = [], [], [], []
 
-    V_gain = 400 / 3
+
     # split the variables in 3 : time, prbs and current
 
     for var in variables:
@@ -149,8 +145,8 @@ def main():
     # FFT & filtering
 
     sampling_period = 1e-6
-    fft_v = np.fft.fft(np.array(voltage))
-    fft_i = np.fft.fft(np.array(current))
+    fft_v = np.fft.fft(np.array(voltage[len(voltage)//8:]))
+    fft_i = np.fft.fft(np.array(current[len(current)//8:]))
 
     fft_z = fft_v / fft_i
 
@@ -173,7 +169,7 @@ def main():
 
     # Applie the fractionnal decade smoothing technique
 
-    smoothed_impedance = fractional_decade_smoothing_impedance(fft_z, freqs_z, 1.07)
+    smoothed_impedance = fractional_decade_smoothing_impedance(fft_z, freqs_z, 1.03)
 
     # Adjust static gain and phase
 
@@ -187,7 +183,7 @@ def main():
 
     # impulse method
 
-    file_name = "sim_data/impulse_values.mat"
+    file_name = "sim_data/impulse_values_start-up.mat"
 
     variables = open_mat_file(file_name)
 
@@ -236,15 +232,15 @@ def main():
     # R_l = 0.7
 
     # PhD values
-    f0 = 85000
-    L1 = 280.5 * 1e-6
-    C1 = 12.5 * 1e-9  # 1 / ((2 * np.pi * f0) ** 2 * L1)
-    R1 = 0.7
-    M = 11.2 * 1e-6
-    L2 = 4.82 * 1e-6
-    C2 = 29.2 * 1e-9  # 1 / ((2 * np.pi * f0) ** 2 * L2)
-    R2 = 0.4
-    R_l = 3.65
+    # f0 = 85000
+    # L1 = 280.5 * 1e-6
+    # C1 = 12.5 * 1e-9
+    # R1 = 0.6
+    # M = 14.3 * 1e-6
+    # L2 = 120 * 1e-6
+    # C2 = 29.2 * 1e-9 
+    # R2 = 0.4
+    # R_l = 3.6
 
     primary_s = wpt.transmitter(L=L1, C_s=C1, R=R1)
     secondary_s = wpt.reciever(L=L2, C_s=C2, R=R2, R_l=R_l)
@@ -264,9 +260,18 @@ def main():
         f_max=f_max,
         nb_samples=nb_samples,
         f0=f0,
-        samples=[fft_z, smoothed_impedance],  # ,fft_impulse],
-        samples_frequency=[freqs_z, freqs_z],  # ,freqs_impulse],
-        samples_names=["row fft", "smoothed & adjusted"],  # ,"impulse"],
+        samples=[
+            #fft_z,
+            smoothed_impedance,
+            ],  # ,fft_impulse],
+        samples_frequency=[
+            freqs_z, 
+            freqs_z,
+            ],  # ,freqs_impulse],
+        samples_names=[
+            #"row fft", 
+            "smoothed & adjusted",
+            ],  # ,"impulse"],
         title="Result with PRBS 7, PhD values with P&O identification",
     )
 
