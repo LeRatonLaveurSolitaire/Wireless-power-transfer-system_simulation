@@ -53,8 +53,8 @@ def main() -> None :
         f2 = 1 / (2 * np.pi * (L_2_2 * C2) ** 0.5)
 
         # Normalizing dataset do have value between [-1;1]
-        R_l_data = (np.log10(R_l)) * 10
-        M_data = (np.log10(M/(0.1 * (L1*L2)**0.5)) ) * 10
+        R_l_data = (np.log10(R_l)) / 0.1
+        M_data = (np.log10(M/(0.1 * (L1*L2)**0.5)) ) / 0.1
         f2_data = (f2 - 85000) / 500
 
         output_list = [R_l_data, M_data]
@@ -67,7 +67,7 @@ def main() -> None :
 
         for j, frequency in enumerate(frequencies_to_test):
             impedence = wpt_system.impedance(frequency=frequency)
-            Z1 = R1 + L1 * 2 * np.pi * frequency + 1 / (C1 * 2 * np.pi * frequency)
+            Z1 = R1 + 1j * L1 * 2 * np.pi * frequency - 1j / (C1 * 2 * np.pi * frequency)
             Z2 = impedence - Z1
             input_list.append(np.absolute(Z2))
             input_list.append(np.angle(Z2))

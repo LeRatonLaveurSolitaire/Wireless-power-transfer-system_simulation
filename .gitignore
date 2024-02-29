@@ -1,3 +1,6 @@
 **/__pycache__/
 **/models/
 **/runs/
+*0.pt
+dataset_experimental.pkl
+final_model.pt

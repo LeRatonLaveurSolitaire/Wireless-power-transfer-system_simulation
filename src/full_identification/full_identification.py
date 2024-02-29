@@ -5,7 +5,9 @@ import torch
 from torch import tensor
 import sys
 import os
+
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"
+
 path_to_utils = os.path.join(sys.path[0], "..", "..", "utils")  # add /utils/ to path
 sys.path.insert(-1, path_to_utils)
 
@@ -15,7 +17,7 @@ import wpt_system_class as wpt
 path_to_models = os.path.join(sys.path[0], "..", "..", "neural_network_experiment")  # add /models. to path
 sys.path.insert(-1, path_to_models)
 
-from nn_model_5_256 import NN_model
+from nn_model_4_128 import NN_model
 
 
 def delinearise_R_l(R_l: float = 0) -> float :
@@ -154,7 +156,7 @@ def nn_input_tensor(
             )
         )
         Z_estim = sys_impedance[index]
-        # print(f"{np.absolute(Z_estim)}\t{np.angle(Z_estim)}")
+        # print(f"{index}\t{np.absolute(Z_estim)}\t{np.angle(Z_estim)}")
         Z1 = (
             1j * 2 * np.pi * frequency * L1 + R1 + 1 / (2 * np.pi * frequency * 1j * C1)
         )
@@ -203,7 +205,7 @@ def pretty_print(
 def main() -> None :
     """Main function of the script."""
 
-    model_path = "neural_network_experiment\models-exp-5_256\most_accurate_model.pt"
+    model_path = "neural_network_experiment\models_4_128\most_accurate_model.pt"
     data_path = "sim_data\sim_values_PRBS10_eperimental_setup.mat"
 
     sampling_period = 1e-6
@@ -304,27 +306,28 @@ def main() -> None :
     #     ]
     # )
 
-    print("simulation tensor")
-    for i in range(len(input_tensor) // 2):
-        print(
-            f"{input_tensor[2*i]:.3f} \t {input_tensor[2*i +1]:.3f}"  # \t {c_tensor[2*i]:.3f} \t {c_tensor[2*i +1]:.3f}"
-        )
+    # print("simulation tensor")
+    # for i in range(len(input_tensor) // 2):
+    #     print(
+    #         f"{input_tensor[2*i]:.3f} \t {input_tensor[2*i +1]:.3f}"  # \t {c_tensor[2*i]:.3f} \t {c_tensor[2*i +1]:.3f}"
+    #     )
 
     # Load the neural network from the model object and the weights data
 
-    # neural_network = NN_model(input_size=30, output_size=2)
-    # checkpoint = torch.load(model_path)
-    # neural_network.load_state_dict(checkpoint)
+    neural_network = NN_model(input_size=30, output_size=2)
+    checkpoint = torch.load(model_path)
+    neural_network.load_state_dict(checkpoint)
 
-    # # Compute NN inferance
+    # Compute NN inferance
 
-    # with torch.inference_mode():
-    #     output_tensor = neural_network(input_tensor)
+    with torch.inference_mode():
+        output_tensor = neural_network(input_tensor)
 
-    # R = delinearise_R_l(output_tensor[0].item())
-    # M = delinearise_M(output_tensor[1].item())
+    R = delinearise_R_l(output_tensor[0].item())
+    M = delinearise_M(output_tensor[1].item())
 
 # Potential test input tensor :
+
 # 31.691679000854492, -2.73964786529541, 
 # 29.640941619873047, -2.8143234252929688,
 # 27.79124641418457, -2.909667730331421, 
@@ -342,64 +345,16 @@ def main() -> None :
 # 27.986780166625977, -3.0980052947998047]   
 
 # component values :
+
 # M : 16.41e-6
 # R_l : 1.18
 
-    # print("\nsimulation results :\n")
-    # pretty_print(
-    #     real_r=1.25,
-    #     real_m=16.2,
-    #     estim_r=R,
-    #     estim_m=M * 1e6,
-    # )
-
-    f0 = 85000
-    L1 = 24 * 1e-6
-    C1 = 1 / ((2 * np.pi * f0) ** 2 * L1)
-    R1 = 0.075
-    M = 16.27 * 1e-6
-    L2 = 24 * 1e-6
-    C2 = 1 / ((2 * np.pi * f0) ** 2 * L2)
-    R2 = 0.075
-    R_l = 1.25
-
-    
-    primary_s = wpt.transmitter(L=L1, C_s=C1, R=R1)
-    secondary_s = wpt.reciever(L=L2, C_s=C2, R=R2, R_l=R_l)
-
-    wpt_system = wpt.total_system(
-        transmitter=primary_s, reciever=secondary_s, M=M, name="model S-S"
-    )
-
-    np.set_printoptions(threshold=np.inf, linewidth=np.inf)
-    # print(freqs_noise)
-    # plot the 3 methods on a Bode diagram
-    
-    f_min = 35_000
-    f_max = 250_000
-    nb_samples = 20000
-    bode_plot(
-        systems=[wpt_system],
-        f_min=f_min,
-        f_max=f_max,
-        nb_samples=nb_samples,
-        f0=f0,
-        samples=[
-            #sys_fft,
-            np.array(smooth_sys_impedance),
-            #1 / np.array(fft_impulse),
-        ],
-        samples_frequency=[
-            #freqs,
-            sys_frequencies,
-            #freqs_impulse,
-        ],
-        samples_names=[
-            #"raw",
-            "estimation",
-            #"impulse response",
-        ],
-        title="Result with PRBS 10, experimental values",
+    print("\nsimulation results :\n")
+    pretty_print(
+        real_r=1.25,
+        real_m=16.2,
+        estim_r=R,
+        estim_m=M * 1e6,
     )
 
     # with torch.inference_mode():
