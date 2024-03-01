@@ -1,6 +1,7 @@
 """Script that open a sim data file, perform a frequency response extraction and parameters identification using a NN."""
 import numpy as np
 import h5py
+import csv
 import torch
 from torch import tensor
 import sys
@@ -113,7 +114,7 @@ def extract_impedance(
     #for i in range(20):
     #    print(f"{clean_fft_current[i]}\t{noisy_fft_current[i]}\t{noisy_fft_voltage[i]}")
 
-    gain_fft = 200 / (noisy_fft_current - clean_fft_current)
+    gain_fft = 300 / (noisy_fft_current - clean_fft_current)
     phase_fft = noisy_fft_voltage / noisy_fft_current
 
     system_impedance = np.array(
@@ -206,7 +207,7 @@ def main() -> None :
     """Main function of the script."""
 
     model_path = "neural_network_experiment\models_4_128\most_accurate_model.pt"
-    data_path = "sim_data\sim_values_PRBS10_eperimental_setup_20mm.mat"
+    data_path = "exp_data\data.csv"
 
     sampling_period = 1e-6
 
@@ -217,19 +218,17 @@ def main() -> None :
     R1 = 0.075
 
 
-    # Opening the sm data file
-
-    variables = open_mat_file(data_path)
-
     time, prbs, current, voltage = [], [], [], []
 
     # split the variables in 4 : time, prbs, current and voltage
 
-    for var in variables:
-        time.append(var[0])
-        prbs.append(var[1])
-        current.append(var[2])
-        voltage.append(var[3])
+    with open(data_path,newline='\n') as csv_file:
+        csv_reader = csv.reader(csv_file,delimiter = ',')
+        for row in csv_reader:
+            time.append(float(row[0]))
+            voltage.append(-int(row[1]))
+            current.append(float(row[2]))
+            prbs.append(float(row[3]))
 
     # Trim the edges where no noise is injected, extract current with prbs injection, current without prbs injection
 
@@ -275,7 +274,7 @@ def main() -> None :
     smooth_sys_impedance = fractional_decade_smoothing_impedance(
         impedances=sys_impedance,
         frequencies=sys_frequencies,
-        fractional_factor=1.05,
+        fractional_factor=1.03,
     )
 
     input_tensor = nn_input_tensor(
@@ -356,6 +355,57 @@ def main() -> None :
         real_m=5.23, # for a 20mm gap
         estim_r=R,
         estim_m=M * 1e6,
+    )
+
+
+    f0 = 85000
+    L1 = 24 * 1e-6
+    C1 = 1 / ((2 * np.pi * f0) ** 2 * L1)
+    R1 = 0.075
+    # M = 16.27 * 1e-6 # for a 5mm gap
+    M = 5.2345e-06 # for a 20mm gap
+    L2 = 24 * 1e-6
+    C2 = 1 / ((2 * np.pi * f0) ** 2 * L2)
+    R2 = 0.075
+    R_l = 1.25
+
+
+    primary_s = wpt.transmitter(L=L1, C_s=C1, R=R1)
+    secondary_s = wpt.reciever(L=L2, C_s=C2, R=R2, R_l=R_l)
+
+    wpt_system = wpt.total_system(
+        transmitter=primary_s, reciever=secondary_s, M=M, name="model S-S"
+    )
+
+    np.set_printoptions(threshold=np.inf, linewidth=np.inf)
+    # print(freqs_noise)
+    # plot the 3 methods on a Bode diagram
+
+    f_min = 25_000
+    f_max = 250_000
+    nb_samples = 20000
+    bode_plot(
+        systems=[wpt_system],
+        f_min=f_min,
+        f_max=f_max,
+        nb_samples=nb_samples,
+        f0=f0,
+        samples=[
+            #sys_fft,
+            np.array(smooth_sys_impedance),
+            #1 / np.array(fft_impulse),
+        ],
+        samples_frequency=[
+            #freqs,
+            sys_frequencies,
+            #freqs_impulse,
+        ],
+        samples_names=[
+            #"raw",
+            "estimation",
+            #"impulse response",
+        ],
+        title="Result with PRBS 10, experimental values",
     )
 
     # with torch.inference_mode():

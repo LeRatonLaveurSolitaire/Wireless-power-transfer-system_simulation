@@ -122,7 +122,7 @@ def main() -> None :
 
     # Load the variables from the .mat file
     sampling_period = 1e-6
-    file_name = "sim_data/sim_values_PRBS10_eperimental_setup.mat"
+    file_name = "sim_data/sim_values_PRBS10_eperimental_setup_20mm.mat"
 
     variables = open_mat_file(file_name)
 
@@ -181,7 +181,7 @@ def main() -> None :
     # print(np.where((freqs_to_print > 80_000) & (freqs_to_print < 90_000)))
     # gain_factor = np.absolute(sys_phase[[np.where((freqs_to_print > 80_000) & (freqs_to_print < 90_000) )][0]])/np.absolute(sys_gain[[np.where((freqs_to_print > 80_000) & (freqs_to_print < 90_000) )][0]])
     # print(gain_factor,np.shape(gain_factor))
-    sys_gain *= 100  # gain_factor
+    sys_gain *= 200  # gain_factor
 
     sys_impedance = []
     for i in range(len(sys_gain)):
@@ -300,7 +300,8 @@ def main() -> None :
     L1 = 24 * 1e-6
     C1 = 1 / ((2 * np.pi * f0) ** 2 * L1)
     R1 = 0.075
-    M = 16.27 * 1e-6
+    # M = 16.27 * 1e-6 # for a 5mm gap
+    M = 5.2345e-06 # for a 20mm gap
     L2 = 24 * 1e-6
     C2 = 1 / ((2 * np.pi * f0) ** 2 * L2)
     R2 = 0.075
